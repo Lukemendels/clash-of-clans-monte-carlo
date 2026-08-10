@@ -22,5 +22,7 @@ jobs:
           node --check src/model.js
           node --check src/legality.js
           node --check src/rulesets/th7.js
+          node --check src/rulesets/th7-combat.js
+          node --check src/combat/kernel.js
       - name: Run deterministic tests
         run: npm test
