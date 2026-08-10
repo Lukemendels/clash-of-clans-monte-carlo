@@ -27,7 +27,7 @@ export async function extractBaseWithGemini({ apiKey, model="gemini-3.6-flash", 
     generationConfig:{
       thinkingConfig:{thinkingLevel},
       responseMimeType:"application/json",
-      responseJsonSchema:schema
+      responseSchema:schema
     }
   };
   const response = await callGenerateContent({apiKey,model,payload});
@@ -60,7 +60,7 @@ export async function reviewDossierWithGemini({ apiKey, model="gemini-3.6-flash"
     generationConfig:{
       thinkingConfig:{thinkingLevel},
       responseMimeType:"application/json",
-      responseJsonSchema:schema
+      responseSchema:schema
     }
   };
   const response = await callGenerateContent({apiKey,model,payload});
