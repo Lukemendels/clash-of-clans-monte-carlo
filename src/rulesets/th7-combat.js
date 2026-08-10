@@ -69,8 +69,8 @@ export const TH7_COMBAT_RULESET = {
           hitpoints: field(250, "builderHutWiki"),
           footprint: field([2, 2], "builderHutWiki"),
           targetable: field(true, "builderHutWiki"),
-          isDefenseAtTH7: field(false, "builderHutWiki"),
-          armorOrDamageReduction: field(0, "builderHutWiki"),
+          isDefenseAtTH7: derivedField(false, "Builder Huts become weaponized defenses only starting at Town Hall 14.", ["builderHutWiki"]),
+          armorOrDamageReduction: unresolved("No separate armor/damage-reduction mechanic has been sourced; kernel must not assume one if a future mechanic depends on it."),
         },
       },
     },
@@ -79,7 +79,7 @@ export const TH7_COMBAT_RULESET = {
 
 export function resolvedValue(record, path) {
   const fieldRecord = path.reduce((value, key) => value?.[key], record);
-  if (!fieldRecord || fieldRecord.status !== "verified") {
+  if (!fieldRecord || !["verified","derived-verified"].includes(fieldRecord.status)) {
     throw new Error(`Required combat field is unresolved: ${path.join(".")}`);
   }
   return fieldRecord.value;
@@ -87,6 +87,10 @@ export function resolvedValue(record, path) {
 
 function field(value, source) {
   return { status: "verified", value, source, checkedAt: "2026-08-10" };
+}
+
+function derivedField(value, basis, sources) {
+  return { status: "derived-verified", value, basis, sources, checkedAt: "2026-08-10" };
 }
 
 function unresolved(reason) {
