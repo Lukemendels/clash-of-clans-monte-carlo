@@ -47,7 +47,7 @@ export const TH7_RULESET = {
 
     army_camp:          { label:"Army Camp",            category:"army",     minCount:0, maxCount:4, maxLevel:6, footprint:[4,4], glyph:"AC" },
     barracks:           { label:"Barracks",             category:"army",     minCount:0, maxCount:1, maxLevel:9, footprint:[3,3], glyph:"BR" },
-    laboratory:         { label:"Laboratory",           category:"army",     minCount:0, maxCount:1, maxLevel:5, footprint:[4,4], glyph:"LAB" },
+    laboratory:         { label:"Laboratory",           category:"army",     minCount:0, maxCount:1, maxLevel:5, footprint:[3,3], glyph:"LAB" },
     spell_factory:      { label:"Spell Factory",        category:"army",     minCount:0, maxCount:1, maxLevel:3, footprint:[3,3], glyph:"SF" },
     dark_barracks:      { label:"Dark Barracks",        category:"army",     minCount:0, maxCount:1, maxLevel:2, footprint:[3,3], glyph:"DB" },
     hero_hall:          { label:"Hero Hall",            category:"army",     minCount:0, maxCount:1, maxLevel:1, footprint:[4,4], glyph:"HH" },
