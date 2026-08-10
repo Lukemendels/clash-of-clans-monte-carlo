@@ -1,32 +1,52 @@
-# Basecracker — Clash of Clans Monte Carlo Workbench
+# Basecracker — TH7 Deterministic Combat Lab
 
-Basecracker is a local-first PWA for reconstructing a Clash of Clans base from a screenshot, expressing uncertainty explicitly, running Monte Carlo attack-policy search, and handing the resulting evidence to a text LLM for tactical review.
+Basecracker is a local-first PWA for building an authoritative Clash of Clans base state, reproducing combat mechanics deterministically, and eventually searching enormous attack-policy spaces with Monte Carlo methods.
 
-The project is deliberately split into three layers:
+The current architecture is deliberately **AI-free at runtime**. The simulator must become trustworthy before a model is allowed to drive search or interpret traces.
 
-1. **Observed / reconstructed state** — screenshot plus a 44×44 logical base model.
-2. **Deterministic simulation and search** — stochastic hidden-state sampling plus a repeatable optimization engine.
-3. **Machine cognition** — an LLM can extract visible state or critique a candidate, but it proposes; the simulator validates.
+## Core loop
 
-## Current v0.1 capability
+`legal base state → versioned mechanics → deterministic combat events → replay/validation → Monte Carlo search → human execution`
 
-- Installable static PWA; no build step and no runtime dependencies.
-- Screenshot upload with an adjustable isometric 44×44 grid.
-- Manual building / defense / wall placement and correction.
-- Optional Gemini vision reconstruction using a user-supplied API key held only in `sessionStorage`.
-- Explicit priors for hidden Teslas, traps, Clan Castle threat, and pathing noise.
-- Worker-thread Monte Carlo search across attack strategy, entry angle, offset, funnel width, spell depth, reserve, and ability timing.
-- Verification rollouts on finalists and failure-mode aggregation.
-- Click/tap-sequence output in logical tile coordinates.
-- `coc-attack-dossier/v1` export for text-model review.
-- Optional Gemini reviewer with proposal-only plan patches.
-- GitHub Pages deployment workflow on `main`.
+Later, machine cognition can sit outside that loop:
 
-## Epistemic status
+`simulation traces → model proposes search neighborhoods / hypotheses → deterministic engine tests them`
 
-The current simulator is a **proxy combat model**, not a byte-for-byte recreation of Supercell's combat engine. A reported `3★` percentage is a score inside this model, not a guaranteed result in the live game.
+A model never owns base state, game mechanics, combat resolution, or validation.
 
-That is an intentional architecture decision: base reconstruction, ruleset calibration, combat resolution, search, and LLM review have separate interfaces. We can replace the proxy engine with increasingly exact mechanics without rebuilding the PWA or the dossier contract.
+## Current capability
+
+- Static installable PWA; no backend and no runtime dependencies.
+- Authoritative TH7 base builder on a 44×44 logical grid.
+- Current TH7 inventory, level ceilings, footprints, traps, walls, Hero Hall / Hero Banner, and Builder Huts.
+- Deterministic legality validation for counts, levels, bounds, footprints, and occupied-tile collisions.
+- Complete max-inventory TH7 demo: 54 buildings, 175 walls, 15 traps, and one Hero Banner.
+- Provenance-bearing partial TH7 combat ruleset.
+- First deterministic golden combat fixture: Wizard level 4 vs Builder Hut level 1.
+- Replayable combat event trace with an explicit epistemic boundary: time zero is first impact until first-shot/projectile mechanics are sourced.
+- Legacy proxy Monte Carlo harness retained only as scaffolding; its percentages are not Clash probabilities.
+- GitHub Pages deployment and deterministic test CI.
+
+## Exactness policy
+
+Basecracker does not fill missing mechanics with plausible values.
+
+Every combat field is either:
+
+- `verified` — value plus source/provenance;
+- `derived-verified` — logically derived from sourced facts, with the derivation recorded; or
+- `unresolved` — unavailable for exact simulation until sourced.
+
+If a feature requires an unresolved field, the exact kernel must refuse to claim that feature rather than guess.
+
+## First golden fixture
+
+The current exact slice uses verified values for:
+
+- Wizard L4 damage per attack, HP, attack cadence, range, movement speed, and attack type;
+- Builder Hut L1 HP and footprint.
+
+It can prove the damage sequence and cadence relative to first impact. It does **not** yet claim exact deployment-to-first-impact timing because first-attack delay and projectile travel are unresolved.
 
 ## Run locally
 
@@ -37,56 +57,27 @@ npm run serve
 
 Then open `http://localhost:8080`.
 
-## GitHub Pages
+## Architecture direction
 
-The included `.github/workflows/pages.yml` deploys the repository root as a static Pages artifact on pushes to `main`. In the repository Pages settings, select **GitHub Actions** as the publishing source if it is not already enabled.
+1. **M1 — authoritative rulesets**: complete TH7 inventory and field-level mechanics provenance.
+2. **M2 — deterministic combat kernel**: clock, targeting, movement, range, attack cycles, projectiles, destruction, retargeting, walls, defenses, traps, spells, heroes.
+3. **M3 — replay/calibration**: compare event traces with observed in-game interactions and quantify errors.
+4. **M4 — exact Monte Carlo attacker**: search concrete armies, coordinates, timings, branches, and execution tolerances by repeatedly invoking the deterministic kernel.
+5. **M5 — machine cognition**: use an external model to analyze trace populations and propose mutations/search neighborhoods; deterministic simulation remains judge.
+6. **M6 — inverse base design**: mutate legal bases and co-evolve attacker and defender populations.
 
-## Gemini adapter
-
-Settings default to `gemini-3.6-flash` and thinking level `high`.
-
-The PWA sends requests directly from the browser to Google's Gemini API. The API key is never part of source control and is stored only in `sessionStorage`. Closing the browser session clears it.
-
-Two model jobs are currently defined:
-
-- **Vision extraction**: annotated screenshot → `coc-base/v1` candidate state.
-- **Tactical review**: `coc-attack-dossier/v1` → bounded candidate-plan patch + contingencies.
-
-Human correction remains authoritative after vision extraction, and a reviewer patch must be re-simulated before it is treated as validated.
-
-## Phase 1 — make the crack real
-
-The architecture is ready for the work that determines whether this becomes genuinely strong rather than merely interesting:
-
-- calibrate exact building footprints and combat statistics by Town Hall / level;
-- model troop composition, housing space, targeting rules, projectile timing, retargeting, walls, spells, hero equipment, pets, siege machines, CC troops, traps, and time;
-- implement discrete-event troop / defense simulation;
-- build image-recognition validation sets and correction UX;
-- infer legal hidden-trap distributions from visible base geometry;
-- add adaptive attack branches after hidden state is revealed;
-- compare simulator predictions against real attacks and retain calibration error.
-
-## Phase 2 — inverse problem: base design
-
-The same engine can optimize defense instead of attack:
-
-1. generate or mutate legal base layouts;
-2. attack each candidate with the strongest known attack population;
-3. score anti-3-star robustness across many attack families and hidden-state realizations;
-4. evolve the base;
-5. expose why the base survives to an LLM / human designer;
-6. retain diversity so optimization does not converge on one brittle layout family.
-
-This is a minimax / adversarial co-evolution problem: improve the attacker and defender against each other rather than optimizing either against a static opponent.
+Screenshot ingestion is an optional later convenience layer. A human can build the authoritative base directly; image reconstruction is not a prerequisite for the simulator.
 
 ## Repository contracts
 
-- `AGENTS.md` — code-agent operating rules.
-- `agent.md` — runtime LLM reviewer contract.
-- `skill.md` — portable tactical-review skill.
-- `docs/architecture.md` — system boundaries and state transitions.
-- `docs/roadmap.md` — implementation sequence toward high-fidelity simulation and inverse base design.
+- `src/rulesets/th7.js` — authoritative TH7 legality envelope.
+- `src/rulesets/th7-combat.js` — provenance-bearing combat mechanics corpus.
+- `src/combat/kernel.js` — deterministic combat event resolution.
+- `src/model.js` — authoritative base-state model and full TH7 demo.
+- `src/legality.js` — deterministic base validation.
+- `docs/architecture.md` — system boundaries.
+- `docs/roadmap.md` — implementation sequence.
 
 ## Non-goals / boundaries
 
-Basecracker does not modify the Clash of Clans client, automate taps in the live client, intercept network traffic, or ship Supercell proprietary assets. It is an external analysis and simulation workbench.
+Basecracker does not modify the Clash of Clans client, automate live-game taps, intercept network traffic, or ship Supercell proprietary assets. It is an external analysis and simulation workbench.
