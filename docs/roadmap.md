@@ -1,84 +1,100 @@
 # Roadmap
 
-## M0 — workbench skeleton (v0.1)
+## M0 — research workbench skeleton
 
-- [x] PWA shell and GitHub Pages workflow
-- [x] screenshot upload + 44×44 isometric calibration
-- [x] manual state reconstruction
-- [x] Gemini 3.6 Flash vision adapter
-- [x] explicit hidden-state priors
-- [x] seeded Monte Carlo proxy engine
-- [x] evolutionary attack-policy search
-- [x] attack dossier / LLM reviewer contract
-- [x] Gemini tactical reviewer
-- [x] agent / skill repository instructions
+- [x] static PWA + GitHub Pages
+- [x] 44×44 base-state surface
+- [x] seeded proxy Monte Carlo harness
+- [x] evolutionary policy-search scaffold
+- [x] prove browser-hosted experimentation loop
 
-## M1 — mechanics registry and validation corpus
+The early screenshot / runtime-model experiments were intentionally discarded from the core architecture once the precision requirement became clear.
 
-- [ ] define versioned Town Hall rulesets
-- [ ] building footprint registry
-- [ ] defense / troop / spell / hero / equipment stat schema
-- [ ] army legality and housing-space checks
-- [ ] fixture bases and known interaction tests
-- [ ] replay / observation log format for calibration
+## M1 — authoritative TH7 state + mechanics registry
 
-Exit condition: mechanics can be updated as data without rewriting the planner UI.
+- [x] TH7-first versioned legality ruleset
+- [x] deterministic base builder
+- [x] inventory / level / footprint / overlap validation
+- [x] full max-inventory TH7 demo
+- [x] field-level mechanics provenance schema
+- [x] first verified troop/building records: Wizard L4 + Builder Hut L1
+- [ ] complete TH7 building HP / defensive mechanics
+- [ ] complete TH7 troop statistics and level availability
+- [ ] complete TH7 wall / trap / spell / hero mechanics
+- [ ] provenance audit against official balance notes where available
 
-## M2 — discrete combat engine
+Exit condition: every fact required by a TH7 attack is machine-readable, sourced, and never guessed.
 
-- [ ] explicit simulation clock
-- [ ] entity HP, movement, range, attack interval, target rules
-- [ ] walls and pathfinding
-- [ ] projectile / splash / chain effects
+## M2 — deterministic combat kernel
+
+- [x] repeated-impact damage cadence
+- [x] replayable ordered event trace
+- [x] unresolved mechanics block exact features
+- [ ] explicit simulation clock from deployment
+- [ ] target acquisition and target-selection rules
+- [ ] movement and collision geometry
+- [ ] attack-range entry
+- [ ] first-attack timing
+- [ ] projectile launch / travel / impact
+- [ ] building destruction and retargeting
+- [ ] defensive attacks against moving troops
+- [ ] walls and ground pathfinding
+- [ ] splash / chain / area effects
+- [ ] multiple troops and concurrent events
+- [ ] traps and reveal behavior
 - [ ] spells and aura effects
-- [ ] traps and hidden-state reveal
-- [ ] CC deployment
-- [ ] heroes, equipment, pets, siege machines
-- [ ] deterministic replay for a fixed seed
+- [ ] Clan Castle troops
+- [ ] Barbarian King / Hero Hall behavior relevant to TH7
 
-Exit condition: a trial produces a replayable event trace, not only a score.
+Exit condition: a complete fixed TH7 attack produces the same replayable event trace every run.
 
-## M3 — screenshot reconstruction quality
+## M3 — validation against observed Clash behavior
 
-- [ ] annotated grid calibration presets by device / crop
-- [ ] object detection / segmentation benchmark
-- [ ] confidence-based human correction queue
-- [ ] wall tracing
-- [ ] level estimation
-- [ ] reconstruction diff after human correction
+- [ ] golden micro-interaction capture protocol
+- [ ] compare predicted hit counts and timestamps with observed attacks
+- [ ] quantify movement / targeting / projectile error
+- [ ] regression fixtures for every resolved discrepancy
+- [ ] prevent features from being labeled exact before calibration
 
-Exit condition: major-defense state can be extracted with measured accuracy and corrections are fast.
+Exit condition: kernel error is measured mechanic-by-mechanic rather than assumed away.
 
-## M4 — attacker search
+## M4 — exact Monte Carlo attacker
 
-- [ ] exact army composition search
-- [ ] tap-coordinate and timing optimization
-- [ ] adaptive policies with branches after CC / traps / Tesla reveal
-- [ ] multi-objective robustness: 3-star rate, p10, time, execution difficulty
+- [ ] concrete TH7 army representation + housing legality
+- [ ] deterministic deployment action schema
+- [ ] candidate tap coordinates and timing
+- [ ] exact attack execution through the combat kernel
+- [ ] hidden-state worlds for traps / Teslas / CC state where legitimately unknown
+- [ ] human execution noise (coordinate and timing tolerance)
+- [ ] multi-objective ranking: 3-star rate, p10, time, robustness, execution difficulty
 - [ ] replay visualizer / tutorial mode
-- [ ] LLM proposes search neighborhoods from event-trace failures
 
-Exit condition: candidate attacks are concrete enough for a strong human attacker to rehearse.
+Exit condition: Basecracker ranks concrete attacks by repeated exact simulations instead of proxy scores.
 
-## M5 — calibration against reality
+## M5 — machine cognition over simulation
 
-- [ ] record planned vs actual attack outcomes
-- [ ] compare predicted path / timing / destruction to observation
-- [ ] estimate model error by mechanic and attack family
-- [ ] prevent confidence from outrunning calibration quality
+Only after M2–M4 are trustworthy:
 
-Exit condition: simulator error is quantified rather than assumed away.
+- [ ] export populations of success / failure traces
+- [ ] external model identifies failure clusters
+- [ ] model proposes policy mutations and search neighborhoods
+- [ ] deterministic engine accepts or rejects proposals
+- [ ] no model write authority over rulesets or combat outcomes
 
-## M6 — Phase 2: anti-3-star base generation
+Exit condition: machine cognition improves search efficiency without becoming part of the truth layer.
 
-Treat base design as the inverse adversarial optimization problem.
+## M6 — inverse problem: anti-3-star base generation
 
 - [ ] legal layout genotype + mutation operators
 - [ ] attack-population benchmark
-- [ ] defender fitness across attack families
+- [ ] defender fitness across strong attacker populations
 - [ ] co-evolution loop: attackers improve against bases; bases improve against attackers
-- [ ] diversity / novelty pressure to prevent one-layout convergence
-- [ ] LLM explanation layer for why a mutation improved robustness
-- [ ] base-builder tutorial / export representation
+- [ ] diversity / novelty pressure
+- [ ] deterministic proof that every mutation remains legal
+- [ ] model explanation / hypothesis generation as an optional outer layer
 
-Exit condition: generated layouts survive a broad attack population, not only one frozen optimizer.
+Exit condition: generated TH7 layouts survive a broad evolving attack population rather than one frozen optimizer.
+
+## Later convenience layers
+
+Screenshot ingestion can return after the simulator is valuable. Its role is only to accelerate creation of an authoritative base state; human/deterministic validation remains the gate.
