@@ -1,6 +1,7 @@
 name: Deploy GitHub Pages
 
 # Public-repo deployment trigger.
+# Pages source enabled; pushes to main publish the PWA.
 on:
   push:
     branches: [main]
