@@ -135,16 +135,61 @@ export function sanitizeBase(input) {
 
 export function makeDemoBase() {
   let base = newBase();
-  base.meta.name = "TH7 builder demo";
-  const placements = [
-    ["town_hall",20,20,7],["clan_castle",20,15,3],["hero_hall",15,20,1],
-    ["air_defense",12,14,5],["air_defense",29,14,5],["air_defense",20,29,5],
-    ["wizard_tower",12,25,4],["wizard_tower",29,25,4],
-    ["mortar",10,20,5],["mortar",31,20,5],["mortar",20,10,5],
-    ["hidden_tesla",17,17,3],["hidden_tesla",25,17,3],
-    ["air_sweeper",21,25,3],
+  base.meta.name = "Full max-inventory TH7 demo";
+  base.meta.notes = "Deterministic full TH7 demonstration layout. Every supported TH7 entity is placed at its ruleset maximum count and level. Layout is for engine testing, not base-design quality.";
+
+  // Exactly 175 wall tiles: a 38×38 outer ring (148) plus a 27-tile internal divider.
+  const walls = [];
+  for (let x=3; x<=40; x++) {
+    walls.push([x,3],[x,40]);
+  }
+  for (let y=4; y<=39; y++) {
+    walls.push([3,y],[40,y]);
+  }
+  for (let x=10; x<=36; x++) walls.push([x,22]);
+
+  walls.forEach(([x,y],index)=>{
+    const next = addStructure(base,"wall",x,y,{level:TH7_RULESET.entities.wall.maxLevel,id:`wall-demo-${index+1}`});
+    if (next.structures.length !== base.structures.length + 1) throw new Error(`Unable to place demo wall ${index+1} at ${x},${y}.`);
+    base = next;
+  });
+
+  // Place tactically important entities first, then fill every remaining TH7 inventory slot.
+  const priority = [
+    "town_hall","clan_castle","hero_hall","air_defense","wizard_tower","mortar",
+    "hidden_tesla","air_sweeper","cannon","archer_tower",
+    "gold_storage","elixir_storage","dark_elixir_storage","dark_elixir_drill",
+    "laboratory","spell_factory","dark_barracks","barracks","army_camp",
+    "gold_mine","elixir_collector","builder_hut","hero_banner",
+    "giant_bomb","bomb","spring_trap","air_bomb","seeking_air_mine",
   ];
-  for(const [type,x,y,level] of placements) base=addStructure(base,type,x,y,{level});
+  const allNonWall = Object.keys(TH7_RULESET.entities).filter(type=>type!=="wall");
+  const placementOrder = [...priority,...allNonWall.filter(type=>!priority.includes(type))];
+
+  const slots = [];
+  for (let y=4; y<=39; y++) for (let x=4; x<=39; x++) slots.push([x,y]);
+  slots.sort((a,b)=>{
+    const da=(a[0]-22)**2+(a[1]-22)**2;
+    const db=(b[0]-22)**2+(b[1]-22)**2;
+    return da-db || Math.abs(a[1]-22)-Math.abs(b[1]-22) || Math.abs(a[0]-22)-Math.abs(b[0]-22) || a[1]-b[1] || a[0]-b[0];
+  });
+
+  for (const type of placementOrder) {
+    const spec = TH7_RULESET.entities[type];
+    for (let index=0; index<spec.maxCount; index++) {
+      let placed = false;
+      for (const [x,y] of slots) {
+        const next = addStructure(base,type,x,y,{level:spec.maxLevel,id:`${type}-demo-${index+1}`});
+        if (next.structures.length === base.structures.length + 1) {
+          base = next;
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) throw new Error(`Unable to place full TH7 demo inventory: ${type} ${index+1}/${spec.maxCount}.`);
+    }
+  }
+
   return base;
 }
 
