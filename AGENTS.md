@@ -2,37 +2,55 @@
 
 ## Mission
 
-Build an external, local-first tactical simulation workbench that turns a visible Clash of Clans base into explicit state, searches counterfactual attacks, and exposes evidence to machine cognition.
+Build an external, local-first Clash of Clans simulation laboratory that represents a legal base explicitly, reproduces combat deterministically, and searches counterfactual attacks only after the kernel is trustworthy.
 
 ## Architectural invariants
 
-1. **Observed state is not simulated truth.** Preserve extraction confidence and human corrections.
-2. **LLMs propose; deterministic code evaluates.** A model may reconstruct state or propose an attack patch. It may not silently mark that proposal validated.
-3. **A candidate must be re-simulated after mutation.** Never carry old Monte Carlo statistics onto a changed plan.
-4. **Randomness must be seedable.** Simulator comparisons need reproducibility.
-5. **Rules and mechanics belong outside UI code.** Move increasingly exact game mechanics behind simulator / ruleset interfaces.
-6. **No secrets in source control.** API keys are runtime-only.
-7. **No live-client automation or modification.** This repository is an external simulator and planning tool.
-8. **No proprietary game assets.** Use neutral UI graphics and structured game-state data.
+1. **Authoritative state is explicit.** Base identity, level, tile anchor, footprint, walls, traps, and markers come from validated state—not model inference.
+2. **No guessed combat mechanics.** Every value required by exact simulation must be verified, derived with recorded provenance, or remain unresolved.
+3. **Unresolved mechanics block dependent features.** Do not substitute plausible timing, HP, damage, targeting, pathing, projectile, or movement values.
+4. **Combat resolution is deterministic.** Same state + same actions + same explicit random seed, where randomness is legitimately modeled, must produce the same ordered event trace.
+5. **Monte Carlo varies worlds and policies, not combat truth.** Each sampled world is resolved by the deterministic kernel.
+6. **Rules and mechanics live outside UI code.** Versioned rulesets and the combat kernel are the truth layer.
+7. **Legacy proxy results are never presented as Clash probabilities.** The proxy harness is scaffolding until replaced.
+8. **No runtime AI dependency in the current phase.** A model may return later as an outer search/analysis driver over exact traces, never as ruleset or combat authority.
+9. **No live-client automation or modification.** This repository is an external simulator and planning tool.
+10. **No proprietary game assets.** Use neutral UI graphics and structured game-state data.
 
 ## Code style
 
 - Browser-native ES modules; avoid a build tool until it buys something material.
-- Prefer pure functions in `model.js`, `sim.js`, and `optimizer.js`.
+- Prefer pure functions for rules, legality, combat resolution, and search.
 - Keep PWA paths relative so GitHub Pages subpath hosting works.
-- Add tests for simulator invariants before increasing fidelity.
-- Mark approximations as approximations. Do not make accuracy claims unsupported by calibration data.
+- Add deterministic golden fixtures before expanding a mechanic into larger simulations.
+- Keep field-level provenance with combat data.
+- Make epistemic boundaries visible in code and UI.
 
 ## Change protocol
 
-For any simulator change:
+For any mechanics change:
 
-1. state the mechanic being modeled;
-2. add or update a deterministic test;
-3. preserve seeded reproducibility;
-4. document whether the change is a proxy heuristic or calibrated game mechanic;
-5. invalidate / rerun prior results if the scoring semantics changed.
+1. identify the exact game mechanic;
+2. record its source/provenance;
+3. classify each required field as verified, derived-verified, or unresolved;
+4. add/update a deterministic golden test;
+5. preserve replay determinism;
+6. document the temporal/spatial reference frame;
+7. invalidate prior search results if mechanics semantics changed.
 
-## Future high-fidelity engine
+## Build order
 
-The intended direction is a discrete-event / time-stepped world model with explicit entities, target selection, movement, attack intervals, projectiles, splash, spell effects, pathing, walls, traps, heroes, equipment, pets, siege machines, and cleanup. Do not bury these mechanics in ad hoc UI logic.
+Expand from micro-interactions upward:
+
+1. damage impacts;
+2. acquisition;
+3. movement/range;
+4. first-shot and projectile timing;
+5. destruction/retargeting;
+6. defensive fire;
+7. walls/pathfinding;
+8. concurrency and area effects;
+9. traps/spells/heroes/CC;
+10. full TH7 attack replay;
+11. exact Monte Carlo search;
+12. optional machine-cognition driver over trace populations.
