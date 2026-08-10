@@ -134,24 +134,20 @@ export function sanitizeBase(input) {
 }
 
 export function makeDemoBase() {
-  let base = newBase();
+  const base = newBase();
   base.meta.name = "Full max-inventory TH7 demo";
   base.meta.notes = "Deterministic full TH7 demonstration layout. Every supported TH7 entity is placed at its ruleset maximum count and level. Layout is for engine testing, not base-design quality.";
 
   // Exactly 175 wall tiles: a 38×38 outer ring (148) plus a 27-tile internal divider.
   const walls = [];
-  for (let x=3; x<=40; x++) {
-    walls.push([x,3],[x,40]);
-  }
-  for (let y=4; y<=39; y++) {
-    walls.push([3,y],[40,y]);
-  }
+  for (let x=3; x<=40; x++) walls.push([x,3],[x,40]);
+  for (let y=4; y<=39; y++) walls.push([3,y],[40,y]);
   for (let x=10; x<=36; x++) walls.push([x,22]);
 
   walls.forEach(([x,y],index)=>{
-    const next = addStructure(base,"wall",x,y,{level:TH7_RULESET.entities.wall.maxLevel,id:`wall-demo-${index+1}`});
-    if (next.structures.length !== base.structures.length + 1) throw new Error(`Unable to place demo wall ${index+1} at ${x},${y}.`);
-    base = next;
+    const item = structureFrom("wall",x,y,{level:TH7_RULESET.entities.wall.maxLevel,id:`wall-demo-${index+1}`});
+    if (base.structures.some(s=>overlaps(s,item))) throw new Error(`Unable to place demo wall ${index+1} at ${x},${y}.`);
+    base.structures.push(item);
   });
 
   // Place tactically important entities first, then fill every remaining TH7 inventory slot.
@@ -179,12 +175,11 @@ export function makeDemoBase() {
     for (let index=0; index<spec.maxCount; index++) {
       let placed = false;
       for (const [x,y] of slots) {
-        const next = addStructure(base,type,x,y,{level:spec.maxLevel,id:`${type}-demo-${index+1}`});
-        if (next.structures.length === base.structures.length + 1) {
-          base = next;
-          placed = true;
-          break;
-        }
+        const item = structureFrom(type,x,y,{level:spec.maxLevel,id:`${type}-demo-${index+1}`});
+        if (base.structures.some(s=>overlaps(s,item))) continue;
+        base.structures.push(item);
+        placed = true;
+        break;
       }
       if (!placed) throw new Error(`Unable to place full TH7 demo inventory: ${type} ${index+1}/${spec.maxCount}.`);
     }
