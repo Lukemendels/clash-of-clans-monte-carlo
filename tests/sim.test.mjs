@@ -36,14 +36,15 @@ test("optimizer returns ranked verified candidates",()=>{
   assert.ok(result.results[0].summary.trials>=80);
 });
 
-test("base sanitization does not trust arbitrary structure types",()=>{
+test("base sanitization drops objects outside the authoritative TH7 ruleset",()=>{
   const base=sanitizeBase({structures:[{type:"made_up",x:5,y:5,size:99}]});
-  assert.equal(base.structures[0].type,"generic");
+  assert.equal(base.meta.townHall,7);
+  assert.equal(base.structures.length,0);
 });
 
-test("dossier preserves epistemic status",()=>{
+test("dossier preserves legacy proxy epistemic status",()=>{
   let base=newBase();base=addStructure(base,"town_hall",20,20);
-  const dossier=buildDossier(base,null,{extractionStatus:"human-edited"});
+  const dossier=buildDossier(base,null,{extractionStatus:"human-built"});
   assert.equal(dossier.schema,"coc-attack-dossier/v1");
   assert.match(dossier.epistemicStatus.simulator,/proxy/);
 });
