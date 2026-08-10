@@ -1,0 +1,11 @@
+{
+  "schema": "coc-ruleset/v1",
+  "id": "proxy-v0.1",
+  "status": "heuristic",
+  "description": "Placeholder tactical weights used by the v0.1 proxy simulator. These are not official Clash of Clans combat statistics.",
+  "gridSize": 44,
+  "notes": [
+    "Move calibrated combat statistics into versioned rulesets during M1.",
+    "Never relabel heuristic weights as exact game data."
+  ]
+}
