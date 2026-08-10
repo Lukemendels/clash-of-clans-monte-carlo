@@ -1,4 +1,4 @@
-const CACHE="basecracker-v0.1.0";
+const CACHE="basecracker-v0.1.1";
 const ASSETS=[
   "./","./index.html","./styles.css","./manifest.webmanifest","./icon.svg",
   "./src/app.js","./src/model.js","./src/sim.js","./src/optimizer.js","./src/worker.js","./src/dossier.js","./src/gemini.js","./src/projection.js"
