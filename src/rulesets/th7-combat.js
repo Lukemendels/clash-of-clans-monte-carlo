@@ -13,11 +13,6 @@ export const TH7_COMBAT_RULESET = {
       url: "https://clashofclans.fandom.com/wiki/Wizard",
       class: "secondary-current",
     },
-    wizardCrossCheck: {
-      label: "Clash Wiki — Wizard",
-      url: "https://clash-wiki.org/army/regular-troops/wizard/",
-      class: "secondary-current",
-    },
     builderHutWiki: {
       label: "Clash of Clans Wiki — Builder's Hut",
       url: "https://clashofclans.fandom.com/wiki/Builder%27s_Hut",
@@ -35,14 +30,14 @@ export const TH7_COMBAT_RULESET = {
       maxLevelAtTH7: 4,
       maxLevelAtTH7Provenance: {
         status: "derived-verified",
-        basis: "Wizard level 4 requires Laboratory 5; Supercell identifies TH7 with Laboratory level 5 for donation caps.",
-        sources: ["wizardCrossCheck", "th7LabCap"],
+        basis: "The current Wizard table requires Laboratory 5 for Wizard level 4; Supercell identifies TH7 with Laboratory level 5 for donation caps.",
+        sources: ["wizardWiki", "th7LabCap"],
       },
       levels: {
         4: {
-          hitpoints: field(130, "wizardCrossCheck"),
-          damagePerAttack: field(187.5, "wizardCrossCheck"),
-          damagePerSecond: field(125, "wizardCrossCheck"),
+          hitpoints: field(135, "wizardWiki"),
+          damagePerAttack: field(187.5, "wizardWiki"),
+          damagePerSecond: field(125, "wizardWiki"),
           attackIntervalMs: field(1500, "wizardWiki"),
           movementSpeed: field(16, "wizardWiki"),
           rangeTiles: field(3, "wizardWiki"),
