@@ -1,7 +1,7 @@
 {
-  "name": "Basecracker — Monte Carlo Workbench",
+  "name": "Basecracker — TH7 Deterministic Combat Lab",
   "short_name": "Basecracker",
-  "description": "Local-first Monte Carlo attack planning and base-analysis workbench.",
+  "description": "Local-first TH7 base builder, deterministic combat kernel, and Monte Carlo research workbench.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
