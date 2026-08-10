@@ -1,4 +1,4 @@
-const CACHE="basecracker-v0.2.0-th7";
+const CACHE="basecracker-v0.2.1-th7-full-demo";
 const ASSETS=[
   "./","./index.html","./styles.css","./builder.css","./manifest.webmanifest","./icon.svg",
   "./src/app.js","./src/model.js","./src/legality.js","./src/rulesets/th7.js",
