@@ -4,31 +4,31 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0a1018">
-  <meta name="description" content="Deterministic TH7 base builder and Monte Carlo combat research workbench.">
+  <meta name="description" content="Deterministic TH7 base builder and combat research workbench.">
   <title>Basecracker — TH7 Combat Lab</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./builder.css">
 </head>
 <body>
   <header class="app-header">
     <div><p class="eyebrow">DETERMINISTIC CLASH COMBAT LAB</p><h1>Basecracker</h1></div>
-    <div class="status-chip">TH7 ruleset · M1</div>
+    <div class="status-chip">TH7 · exact-kernel v0.1</div>
   </header>
 
   <nav class="tabs" aria-label="Workbench stages">
     <button class="tab active" data-tab="capture">1 · Build</button>
     <button class="tab" data-tab="model">2 · Validate</button>
-    <button class="tab" data-tab="crack">3 · Crack</button>
-    <button class="tab" data-tab="dossier">4 · Dossier</button>
-    <button class="tab" data-tab="settings">Experimental</button>
+    <button class="tab" data-tab="kernel">3 · Kernel</button>
+    <button class="tab" data-tab="crack">4 · Crack</button>
   </nav>
 
   <main>
     <section id="panel-capture" class="panel active">
       <div class="panel-heading">
         <div><p class="kicker">AUTHORITATIVE STATE</p><h2>Build the TH7 base</h2></div>
-        <p>Place the buildings, walls, traps, and defensive marker that actually exist on your account. The human-built grid is authoritative; vision is optional assistance only.</p>
+        <p>Place every building, wall, trap, and marker explicitly. The grid state—not an image model—is authoritative input to the simulator.</p>
       </div>
 
       <div class="capture-grid">
@@ -55,13 +55,15 @@
     <section id="panel-model" class="panel">
       <div class="panel-heading">
         <div><p class="kicker">STATE → VALIDATION</p><h2>Prove the base is legal</h2></div>
-        <p>Legality is deterministic: supported TH7 entity, legal level, legal count, in-bounds footprint, and no occupied-tile overlap.</p>
+        <p>Legality is deterministic: supported TH7 entity, legal level, legal count, integer tile anchor, in-bounds footprint, and no occupied-tile overlap.</p>
       </div>
+
       <div class="two-col">
         <article class="card">
           <h3>Base metadata</h3>
           <label>Base name<input id="base-name" type="text"></label>
           <label>Town Hall<input id="town-hall" type="number" min="7" max="7" step="1" value="7" readonly></label>
+          <label>Ruleset<div id="ruleset-id" class="callout"></div></label>
           <label>Notes<textarea id="base-notes" rows="4" placeholder="War context, known tendencies, manual observations…"></textarea></label>
           <div class="toolbar wrap">
             <button id="save-meta" class="accent">Save metadata</button>
@@ -89,10 +91,42 @@
       </article>
     </section>
 
+    <section id="panel-kernel" class="panel">
+      <div class="panel-heading">
+        <div><p class="kicker">VERIFIED MECHANICS → EVENTS</p><h2>Deterministic combat kernel</h2></div>
+        <p>The first golden fixture models only mechanics we can currently source exactly. Unknown timing fields block features that require them; they are never filled with plausible guesses.</p>
+      </div>
+
+      <div class="two-col">
+        <article class="card">
+          <h3>Golden fixture</h3>
+          <p><strong>Wizard L4 → Builder Hut L1</strong></p>
+          <p class="muted">Temporal origin is the first damage impact. Deployment, target acquisition, first-shot delay, and projectile travel are not yet modeled.</p>
+          <div class="toolbar wrap">
+            <button id="run-fixture" class="accent">Run deterministic fixture</button>
+            <button id="copy-trace" class="secondary">Copy trace</button>
+            <button id="download-trace" class="secondary">Download trace</button>
+          </div>
+          <div id="mechanics-summary"></div>
+        </article>
+
+        <article class="card">
+          <h3>Combat ruleset</h3>
+          <div id="combat-ruleset-id" class="callout"></div>
+          <p class="hint">This is a partial exact ruleset, not a complete Clash clone. Each field carries provenance and resolution status. The kernel throws if a required field is unresolved.</p>
+        </article>
+      </div>
+
+      <article class="card code-card">
+        <div class="side-heading"><h3>Replayable event trace</h3><span class="muted">same input → same events</span></div>
+        <pre id="kernel-trace">Run the golden fixture.</pre>
+      </article>
+    </section>
+
     <section id="panel-crack" class="panel">
       <div class="panel-heading">
-        <div><p class="kicker">LEGACY SEARCH HARNESS</p><h2>Proxy crack</h2></div>
-        <p>This search harness remains available while the deterministic combat kernel is built. Its percentages are not Clash probabilities.</p>
+        <div><p class="kicker">SEARCH HARNESS</p><h2>Monte Carlo crack</h2></div>
+        <p>The current search code is retained only as a legacy harness while the exact kernel expands. It will be replaced by search over exact deterministic attacks.</p>
       </div>
       <div class="crack-controls card">
         <label>Strategy<select id="strategy"></select></label>
@@ -102,51 +136,13 @@
         <button id="run-crack" class="accent big">Run legacy proxy</button>
       </div>
       <p id="progress" class="progress">Ready.</p>
-      <div class="warning-banner"><strong>Not an exact combat engine yet.</strong> M2 replaces this proxy with deterministic units, HP, targeting, movement, attack cycles, projectiles, spells, traps, and replayable events.</div>
+      <div class="warning-banner"><strong>Legacy proxy.</strong> These percentages are not Clash probabilities. The real Monte Carlo engine will repeatedly invoke the deterministic combat kernel across attack policies and legal hidden-state worlds.</div>
       <div id="crack-results" class="results"></div>
-    </section>
-
-    <section id="panel-dossier" class="panel">
-      <div class="panel-heading">
-        <div><p class="kicker">SIMULATION → MACHINE COGNITION</p><h2>Attack dossier</h2></div>
-        <p>Expose authoritative base state and simulation traces to a text LLM. Model proposals never become authoritative without deterministic validation.</p>
-      </div>
-      <div class="toolbar wrap">
-        <button id="copy-dossier" class="secondary">Copy dossier JSON</button>
-        <button id="copy-review-prompt" class="secondary">Copy LLM review prompt</button>
-        <button id="download-dossier" class="secondary">Download dossier</button>
-        <button id="gemini-review" class="accent">Review top attack with Gemini</button>
-      </div>
-      <div class="two-col dossier-grid">
-        <article class="card code-card"><h3>Machine-readable dossier</h3><pre id="dossier-preview"></pre></article>
-        <article class="card code-card"><div class="side-heading"><h3>LLM critique</h3><button id="apply-review" class="secondary compact">Apply proposal</button></div><pre id="review-output">No model review yet.</pre><p class="hint">Applying a model patch only changes the displayed candidate. Re-run simulation before treating it as validated.</p></article>
-      </div>
-    </section>
-
-    <section id="panel-settings" class="panel">
-      <div class="panel-heading">
-        <div><p class="kicker">EXPERIMENTAL ASSISTANCE</p><h2>Vision + Gemini</h2></div>
-        <p>Screenshot reconstruction is no longer authoritative. It may later accelerate manual entry, but the human-verified TH7 grid remains the simulator state.</p>
-      </div>
-      <article class="card settings-card">
-        <label class="file-button secondary">Upload screenshot<input id="screenshot" type="file" accept="image/*" hidden></label>
-        <button id="gemini-extract" class="secondary">Experimental Gemini extraction</button>
-        <div class="calibration">
-          <label>Grid center X <input id="cal-centerX" type="range" min="0.2" max="0.8" step="0.005"></label>
-          <label>Grid top Y <input id="cal-topY" type="range" min="0.02" max="0.45" step="0.005"></label>
-          <label>Grid width <input id="cal-gridWidth" type="range" min="0.35" max="1.25" step="0.005"></label>
-          <label>Grid height <input id="cal-gridHeight" type="range" min="0.25" max="1.1" step="0.005"></label>
-        </div>
-        <label>Gemini API key<input id="api-key" type="password" autocomplete="off" placeholder="Paste key for this session"></label>
-        <label>Model<input id="model" type="text" value="gemini-3.6-flash"></label>
-        <label>Thinking level<select id="thinking"><option value="minimal">minimal</option><option value="low">low</option><option value="medium">medium</option><option value="high">high</option></select></label>
-        <div class="callout"><strong>Experimental only.</strong> Vision output must be human-reviewed before it can replace authoritative base state.</div>
-      </article>
     </section>
   </main>
 
   <footer>
-    <span>Basecracker · independent research prototype</span>
+    <span>Basecracker · independent deterministic combat research prototype</span>
     <span>No Supercell client modification, automation, or proprietary assets.</span>
   </footer>
   <div id="toast" role="status" aria-live="polite"></div>
