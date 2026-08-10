@@ -1,5 +1,6 @@
 name: Deploy GitHub Pages
 
+# Public-repo deployment trigger.
 on:
   push:
     branches: [main]
