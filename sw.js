@@ -1,7 +1,8 @@
-const CACHE="basecracker-v0.1.3";
+const CACHE="basecracker-v0.2.0-th7";
 const ASSETS=[
-  "./","./index.html","./styles.css","./manifest.webmanifest","./icon.svg",
-  "./src/app.js","./src/model.js","./src/sim.js","./src/optimizer.js","./src/worker.js","./src/dossier.js","./src/gemini.js","./src/projection.js"
+  "./","./index.html","./styles.css","./builder.css","./manifest.webmanifest","./icon.svg",
+  "./src/app.js","./src/model.js","./src/legality.js","./src/rulesets/th7.js",
+  "./src/sim.js","./src/optimizer.js","./src/worker.js","./src/dossier.js","./src/gemini.js","./src/projection.js"
 ];
 
 self.addEventListener("install",event=>event.waitUntil(
@@ -20,16 +21,10 @@ self.addEventListener("fetch",event=>{
   if(event.request.method!=="GET") return;
   const url=new URL(event.request.url);
   if(url.origin!==self.location.origin) return;
-
-  // Network-first is deliberate. Basecracker is an actively iterated research PWA;
-  // deployed code must win over a stale cache. Cached responses are offline fallback only.
   event.respondWith(
     fetch(event.request,{cache:"no-store"})
       .then(res=>{
-        if(res.ok){
-          const copy=res.clone();
-          caches.open(CACHE).then(c=>c.put(event.request,copy));
-        }
+        if(res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(event.request,copy));}
         return res;
       })
       .catch(async()=>{
