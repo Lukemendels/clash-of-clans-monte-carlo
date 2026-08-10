@@ -4,118 +4,103 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0a1018">
-  <meta name="description" content="Local-first Monte Carlo attack planning workbench for Clash-style base analysis.">
-  <title>Basecracker — Monte Carlo Workbench</title>
+  <meta name="description" content="Deterministic TH7 base builder and Monte Carlo combat research workbench.">
+  <title>Basecracker — TH7 Combat Lab</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <header class="app-header">
-    <div>
-      <p class="eyebrow">MONTE CARLO TACTICAL WORKBENCH</p>
-      <h1>Basecracker</h1>
-    </div>
-    <div class="status-chip">local-first PWA · v0.1</div>
+    <div><p class="eyebrow">DETERMINISTIC CLASH COMBAT LAB</p><h1>Basecracker</h1></div>
+    <div class="status-chip">TH7 ruleset · M1</div>
   </header>
 
   <nav class="tabs" aria-label="Workbench stages">
-    <button class="tab active" data-tab="capture">1 · Capture</button>
-    <button class="tab" data-tab="model">2 · Model</button>
+    <button class="tab active" data-tab="capture">1 · Build</button>
+    <button class="tab" data-tab="model">2 · Validate</button>
     <button class="tab" data-tab="crack">3 · Crack</button>
     <button class="tab" data-tab="dossier">4 · Dossier</button>
-    <button class="tab" data-tab="settings">Settings</button>
+    <button class="tab" data-tab="settings">Experimental</button>
   </nav>
 
   <main>
     <section id="panel-capture" class="panel active">
       <div class="panel-heading">
-        <div><p class="kicker">OBSERVATION → STATE</p><h2>Reconstruct the base</h2></div>
-        <p>Upload a screenshot, align the isometric 44×44 grid, then use Gemini vision or human correction to create explicit base state.</p>
+        <div><p class="kicker">AUTHORITATIVE STATE</p><h2>Build the TH7 base</h2></div>
+        <p>Place the buildings, walls, traps, and defensive marker that actually exist on your account. The human-built grid is authoritative; vision is optional assistance only.</p>
       </div>
 
       <div class="capture-grid">
         <div class="canvas-card">
           <div class="toolbar wrap">
-            <label class="file-button">Upload screenshot<input id="screenshot" type="file" accept="image/*" hidden></label>
-            <button id="demo-base" class="secondary">Load demo base</button>
-            <button id="gemini-extract" class="accent">Extract base with Gemini</button>
-            <button id="clear-base" class="danger-ghost">Clear</button>
+            <button id="clear-base" class="danger-ghost">New empty TH7</button>
+            <button id="demo-base" class="secondary">Load small demo</button>
+            <button id="erase" class="secondary">Erase</button>
           </div>
-          <canvas id="canvas" aria-label="Base screenshot reconstruction canvas"></canvas>
-          <div class="calibration">
-            <label>Grid center X <input id="cal-centerX" type="range" min="0.2" max="0.8" step="0.005"></label>
-            <label>Grid top Y <input id="cal-topY" type="range" min="0.02" max="0.45" step="0.005"></label>
-            <label>Grid width <input id="cal-gridWidth" type="range" min="0.35" max="1.25" step="0.005"></label>
-            <label>Grid height <input id="cal-gridHeight" type="range" min="0.25" max="1.1" step="0.005"></label>
-          </div>
-          <p class="hint">Grid alignment matters. The screenshot is evidence; the reconstructed JSON state is what the simulator actually reasons over.</p>
+          <canvas id="canvas" aria-label="TH7 base builder grid"></canvas>
+          <p class="hint">Select an object, choose its level, then tap the grid. Drag while Wall is selected to paint wall segments. Illegal overlaps and inventory overflow are rejected.</p>
         </div>
 
         <aside class="palette-card">
-          <div class="side-heading"><h3>Placement palette</h3><button id="erase" class="secondary compact">Erase</button></div>
+          <div class="side-heading"><h3>TH7 inventory</h3><span class="muted">current / legal max</span></div>
+          <label>Level to place
+            <div class="level-picker"><input id="selected-level" type="number" min="1" value="1"><span id="selected-level-max" class="muted"></span></div>
+          </label>
           <div id="palette" class="palette"></div>
-          <p class="hint">Tap a structure type, then tap the grid. Repeated wall taps create individual wall tiles.</p>
         </aside>
       </div>
     </section>
 
     <section id="panel-model" class="panel">
       <div class="panel-heading">
-        <div><p class="kicker">STATE → ASSUMPTIONS</p><h2>Inspect the world model</h2></div>
-        <p>Make visible state explicit, then describe the hidden-state distribution the Monte Carlo engine should sample.</p>
+        <div><p class="kicker">STATE → VALIDATION</p><h2>Prove the base is legal</h2></div>
+        <p>Legality is deterministic: supported TH7 entity, legal level, legal count, in-bounds footprint, and no occupied-tile overlap.</p>
       </div>
       <div class="two-col">
         <article class="card">
           <h3>Base metadata</h3>
           <label>Base name<input id="base-name" type="text"></label>
-          <label>Town Hall<input id="town-hall" type="number" min="1" max="30" step="1"></label>
-          <label>Notes<textarea id="base-notes" rows="4" placeholder="War context, known tendencies, manual observations…"></textarea></label>
+          <label>Town Hall<input id="town-hall" type="number" value="7" readonly></label>
+          <label>Ruleset<code id="ruleset-id"></code></label>
+          <label>Notes<textarea id="base-notes" rows="4" placeholder="Account state, war notes, anything relevant…"></textarea></label>
           <div class="toolbar wrap">
             <button id="save-meta" class="accent">Save metadata</button>
-            <button id="export-base" class="secondary">Export JSON</button>
+            <button id="export-base" class="secondary">Export TH7 JSON</button>
             <label class="file-button secondary">Import JSON<input id="import-base" type="file" accept="application/json" hidden></label>
           </div>
           <div id="base-stats" class="statline"></div>
         </article>
-
-        <article class="card">
-          <h3>Hidden-state priors</h3>
-          <label class="range-row"><span>Hidden Tesla count</span><output id="v-hiddenTeslaCount"></output><input id="u-hiddenTeslaCount" type="range" min="0" max="8" step="1"></label>
-          <label class="range-row"><span>Trap density</span><output id="v-trapDensity"></output><input id="u-trapDensity" type="range" min="0" max="1" step="0.01"></label>
-          <label class="range-row"><span>CC threat</span><output id="v-ccThreat"></output><input id="u-ccThreat" type="range" min="0" max="1" step="0.01"></label>
-          <label class="range-row"><span>Pathing noise</span><output id="v-pathingNoise"></output><input id="u-pathingNoise" type="range" min="0" max="0.5" step="0.01"></label>
-          <div class="callout"><strong>These are priors, not revealed information.</strong> The simulator samples uncertainty instead of pretending hidden state is known.</div>
-        </article>
+        <article id="legality-report" class="card"></article>
       </div>
 
       <article class="card table-card">
-        <div class="side-heading"><h3>Reconstructed structures</h3><span class="muted">major structures + manually captured walls</span></div>
-        <div class="table-wrap"><table><thead><tr><th>Type</th><th>Tile</th><th>Size</th><th>Confidence</th><th></th></tr></thead><tbody id="structure-list"></tbody></table></div>
+        <div class="side-heading"><h3>Authoritative objects</h3><span class="muted">edit level after placement</span></div>
+        <div class="table-wrap"><table><thead><tr><th>Object</th><th>Tile</th><th>Level</th><th>Footprint</th><th></th></tr></thead><tbody id="structure-list"></tbody></table></div>
       </article>
     </section>
 
     <section id="panel-crack" class="panel">
       <div class="panel-heading">
-        <div><p class="kicker">COUNTERFACTUAL SEARCH</p><h2>Crack the base</h2></div>
-        <p>Search attack-policy parameters, sample hidden state repeatedly, then re-run finalists against a larger verification set.</p>
+        <div><p class="kicker">NEXT: EXACT COMBAT</p><h2>Monte Carlo crack</h2></div>
+        <p>The legal-base layer is M1. M2 replaces the old heuristic simulator with a deterministic discrete-event Clash combat kernel; Monte Carlo will then search exact executions and hidden states.</p>
       </div>
+      <div class="warning-banner"><strong>Legacy proxy only:</strong> the button below is retained for development continuity. Its percentages are not Clash probabilities and should not be used for tactical decisions.</div>
       <div class="crack-controls card">
         <label>Strategy<select id="strategy"></select></label>
         <label>Search budget<input id="budget" type="number" min="200" max="20000" step="200" value="2400"></label>
         <label>Generations<input id="generations" type="number" min="2" max="10" value="5"></label>
         <label>Seed<input id="seed" type="number" value="1337"></label>
-        <button id="run-crack" class="accent big">Run Monte Carlo crack</button>
+        <button id="run-crack" class="accent big">Run legacy proxy</button>
       </div>
-      <p id="progress" class="progress">Ready.</p>
-      <div class="warning-banner"><strong>Proxy engine:</strong> current percentages are simulator scores, not guaranteed live-game outcomes. The architecture is intentionally ready for increasingly exact combat mechanics without changing the planning interface.</div>
+      <p id="progress" class="progress">Exact combat kernel pending.</p>
       <div id="crack-results" class="results"></div>
     </section>
 
     <section id="panel-dossier" class="panel">
       <div class="panel-heading">
-        <div><p class="kicker">SIMULATION → MACHINE COGNITION</p><h2>Attack dossier</h2></div>
-        <p>Expose state, priors, candidate policies, rollouts, failure clusters, and tap sequences to a text LLM without giving it authority to silently mutate the simulator.</p>
+        <div><p class="kicker">STATE → MACHINE COGNITION</p><h2>Attack dossier</h2></div>
+        <p>The dossier contract survives the pivot: exact base state and later exact event traces can be handed to a text model for proposal-only tactical reasoning.</p>
       </div>
       <div class="toolbar wrap">
         <button id="copy-dossier" class="secondary">Copy dossier JSON</button>
@@ -125,28 +110,33 @@
       </div>
       <div class="two-col dossier-grid">
         <article class="card code-card"><h3>Machine-readable dossier</h3><pre id="dossier-preview"></pre></article>
-        <article class="card code-card"><div class="side-heading"><h3>LLM critique</h3><button id="apply-review" class="secondary compact">Apply proposal</button></div><pre id="review-output">No model review yet.</pre><p class="hint">Applying a model patch only changes the displayed candidate. Re-run Monte Carlo before treating it as validated.</p></article>
+        <article class="card code-card"><div class="side-heading"><h3>LLM critique</h3><button id="apply-review" class="secondary compact">Apply proposal</button></div><pre id="review-output">No model review yet.</pre></article>
       </div>
     </section>
 
     <section id="panel-settings" class="panel">
       <div class="panel-heading">
-        <div><p class="kicker">MODEL ADAPTER</p><h2>Gemini connection</h2></div>
-        <p>The PWA has no backend. Your API key is held only in this browser session and sent directly to Google's Gemini API.</p>
+        <div><p class="kicker">EXPERIMENTAL INPUT</p><h2>Screenshot / Gemini assist</h2></div>
+        <p>This is no longer the authority path. A screenshot can be used as a visual reference or to generate a draft, but the human-built legal state is what the simulator will trust.</p>
       </div>
       <article class="card settings-card">
+        <label class="file-button">Upload screenshot reference<input id="screenshot" type="file" accept="image/*" hidden></label>
+        <button id="gemini-extract" class="secondary">Experimental Gemini assist</button>
+        <div class="calibration">
+          <label>Grid center X <input id="cal-centerX" type="range" min="0.2" max="0.8" step="0.005"></label>
+          <label>Grid top Y <input id="cal-topY" type="range" min="0.02" max="0.45" step="0.005"></label>
+          <label>Grid width <input id="cal-gridWidth" type="range" min="0.35" max="1.25" step="0.005"></label>
+          <label>Grid height <input id="cal-gridHeight" type="range" min="0.25" max="1.1" step="0.005"></label>
+        </div>
         <label>Gemini API key<input id="api-key" type="password" autocomplete="off" placeholder="Paste key for this session"></label>
         <label>Model<input id="model" type="text" value="gemini-3.6-flash"></label>
         <label>Thinking level<select id="thinking"><option value="minimal">minimal</option><option value="low">low</option><option value="medium">medium</option><option value="high">high</option></select></label>
-        <div class="callout"><strong>No secret is committed to GitHub.</strong> The key is stored in <code>sessionStorage</code>, so closing the browser session clears it. The selected model and thinking level are non-secret preferences and persist locally.</div>
+        <div class="callout"><strong>Authority boundary:</strong> model output is a draft. It must be normalized and human-verified before entering exact combat.</div>
       </article>
     </section>
   </main>
 
-  <footer>
-    <span>Basecracker · independent research prototype</span>
-    <span>No Supercell client modification, automation, or proprietary assets.</span>
-  </footer>
+  <footer><span>Basecracker · TH7 deterministic-state milestone</span><span>Independent research prototype.</span></footer>
   <div id="toast" role="status" aria-live="polite"></div>
   <script type="module" src="./src/app.js"></script>
 </body>
