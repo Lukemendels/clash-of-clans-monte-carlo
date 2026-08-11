@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { PROGRESSION_META,TOWN_HALLS,PROGRESSION_GATES,OFFENSIVE_STRUCTURES,STORAGES,aggregateStorageCapacity } from "../src/progression/core-th1-th9.js";
+import { REQUIRED_TRAP_COUNTS,INITIAL_TRAP_PLACEMENTS,totalRequiredTraps } from "../src/progression/mandatory-traps-th1-th9.js";
 import { TH9_HEROES } from "../src/progression/heroes-th9.js";
 import { TH9_RESEARCH,MAX_TH9_RESEARCH_LEVELS,maxResearchLevelAtTH9 } from "../src/progression/research-th9.js";
 import { MAX_OFFENSE_TH9_TARGET } from "../src/progression/target-th9.js";
@@ -22,6 +23,15 @@ test("2026 Hero Hall progression gates cannot regress to old TH7 unlock",()=>{
   assert.deepEqual(PROGRESSION_GATES.heroHallMaxRequiredBeforeLeavingTownHall,{8:2,9:3});
 });
 
+test("current Dark Barracks and Laboratory semantics are explicit",()=>{
+  const darkBarracks=OFFENSIVE_STRUCTURES.dark_barracks;
+  assert.equal(darkBarracks.levels[0].cost.amount,200_000);
+  assert.equal(darkBarracks.levels[0].durationSeconds,8*3600);
+  const lab=OFFENSIVE_STRUCTURES.laboratory;
+  assert.equal(lab.ongoingResearchContinuesDuringBuildingUpgrade,true);
+  assert.equal(lab.canStartNewResearchDuringBuildingUpgrade,false);
+});
+
 test("bounded target is max offensive TH9, not defensive max",()=>{
   assert.equal(MAX_OFFENSE_TH9_TARGET.townHall,9);
   assert.deepEqual(MAX_OFFENSE_TH9_TARGET.structures.army_camp,{count:4,level:7});
@@ -41,6 +51,17 @@ test("every TH9 research target is represented by deterministic cost/time rows",
       assert.ok(upgrade.cost.amount>0,`${id} cost`);
       assert.ok(upgrade.durationSeconds>0,`${id} duration`);
     }
+  }
+});
+
+test("mandatory trap placements reproduce Town Hall trap totals",()=>{
+  const expected=[0,0,2,4,8,11,15,23,26];
+  for(let th=1;th<=9;th++) assert.equal(totalRequiredTraps(th),expected[th-1],`TH${th}`);
+  assert.equal(REQUIRED_TRAP_COUNTS.seeking_air_mine[8],4);
+  assert.equal(INITIAL_TRAP_PLACEMENTS.spring_trap.cost.amount,2_000);
+  for(const placement of Object.values(INITIAL_TRAP_PLACEMENTS)){
+    assert.equal(placement.durationSeconds,0);
+    assert.equal(placement.requiresBuilder,false);
   }
 });
 
