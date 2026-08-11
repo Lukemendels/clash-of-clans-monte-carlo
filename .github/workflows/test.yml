@@ -24,5 +24,7 @@ jobs:
           node --check src/rulesets/th7.js
           node --check src/rulesets/th7-combat.js
           node --check src/combat/kernel.js
+          node --check src/evidence/registry.js
+          node --check src/evidence/validate.js
       - name: Run deterministic tests
         run: npm test
