@@ -26,6 +26,12 @@ jobs:
           node --check src/combat/kernel.js
           node --check src/evidence/registry.js
           node --check src/evidence/validate.js
+          node --check src/progression/core-th1-th9.js
+          node --check src/progression/mandatory-traps-th1-th9.js
+          node --check src/progression/heroes-th9.js
+          node --check src/progression/research-th9.js
+          node --check src/progression/target-th9.js
+          node --check src/strategy/luke-th9-rush.js
           node --check evidence-lab/static/core.js
           node --check evidence-lab/static/app.js
       - name: Check Evidence Lab server
