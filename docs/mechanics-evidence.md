@@ -6,6 +6,34 @@ The governing rule is:
 
 > Evidence may be collected cheaply. Promotion into the deterministic kernel must be conservative.
 
+## Evidence Lab
+
+`evidence-lab/` is the dedicated local software for producing video evidence. It is separate from the Basecracker PWA.
+
+Its v0.1 pipeline is:
+
+`local video bytes → SHA-256 → ffprobe decoded-frame timestamps → exact-frame ffmpeg inspection → human event annotations → deterministic PTS measurement → candidate evidence packet`
+
+Run it from the repository root with:
+
+```bash
+npm run evidence-lab
+```
+
+and open `http://127.0.0.1:8765`.
+
+Evidence Lab deliberately exports only `candidate / C-unverified` packets. A separate review/promotion action is required before any observation becomes an authoritative mechanic.
+
+### Timing authority
+
+Frame number identifies an image; it is not the authoritative clock.
+
+Evidence Lab measures time using decoded-frame timestamps reported by ffprobe. It does **not** compute timing as `frame count / nominal FPS`. This matters for variable-frame-rate media and for videos whose declared rate does not exactly match presentation timestamps.
+
+The browser video element is a coarse navigation surface only. The exact inspector requests a specific decoded frame from the local server and ffmpeg extracts that decode-order frame from the original media.
+
+Every candidate packet binds observations to the SHA-256 of the exact local video bytes plus codec/stream metadata and ffmpeg/ffprobe versions.
+
 ## Why video evidence exists
 
 Published stat tables are sufficient for many nominal values such as hitpoints, damage per attack, attack interval, range, movement speed, and footprint. They are often insufficient for temporal and causal behavior that can change combat outcomes:
@@ -27,11 +55,13 @@ Those mechanics should be derived from gameplay observations when they are not d
 
 Gameplay video is known to represent the current mechanics baseline, and the specific clip has been frame-audited.
 
-Use Grade A for numeric temporal calibration. A timing record must include source FPS, start/end frames, the derived interval, and at least one source-frame of measurement uncertainty.
+Use Grade A for numeric temporal calibration. A timing record must include source/decoded timing evidence, start/end frames, the derived interval, and measurement uncertainty.
+
+Publication date alone is not sufficient patch proof. The record must explain why the observed gameplay belongs to the claimed patch.
 
 ### B — historical invariant
 
-Older gameplay clearly demonstrates a qualitative mechanic or causal rule. Before promotion, the record must include an explicit review that no known intervening patch changed that mechanic.
+Older gameplay clearly demonstrates a qualitative mechanic or causal rule. Before promotion, the record must include an explicit review that no known intervening patch changed that mechanic, plus a written continuity rationale.
 
 Grade B may establish behavior such as "an already-launched projectile persists after its source dies." It must not be used to infer current numeric timing merely because the old animation looks similar.
 
@@ -49,42 +79,21 @@ The registry baseline for the 2026-08-10 audit is Supercell's July 9, 2026 **Jul
 
 A newer Supercell gameplay/balance update invalidates the assumption that Grade A video still represents the current patch until the baseline is advanced and affected evidence is reviewed.
 
-## Video record shape
+## Evidence Lab packet
 
-A future accepted observation should look approximately like:
+Evidence Lab exports `basecracker-mechanics-evidence/v1`. A packet contains:
 
-```js
-{
-  id: "wizard-l4-first-shot-2026-08-xx-video-id",
-  status: "accepted",
-  grade: "A-current-patch",
-  claimType: "temporal-parameter",
-  mechanic: "attack.firstAttackDelayMs",
-  source: {
-    kind: "youtube-video",
-    url: "https://www.youtube.com/watch?v=...",
-    title: "...",
-    channel: "...",
-    publishedAt: "2026-08-01"
-  },
-  observedPatch: "patch-2026-07-09-july-balance-update",
-  clip: {
-    startSeconds: 123.4,
-    endSeconds: 124.1,
-    note: "Wizard enters firing state and first projectile impacts isolated target."
-  },
-  measurement: {
-    fps: 60,
-    startFrame: 7404,
-    endFrame: 7422,
-    durationMs: 300,
-    uncertaintyMs: 16.666667
-  },
-  observation: { valueMs: 300 }
-}
-```
+- source URL/title/channel/date where known;
+- SHA-256 of the exact media bytes;
+- stream/codec/dimensions/time-base metadata;
+- ffmpeg/ffprobe versions;
+- attacker, target, and interaction context;
+- observed patch and verification rationale;
+- exact event annotations as frame index + PTS;
+- deterministic PTS measurements;
+- notes and continuity-review fields.
 
-The numbers above are schema examples only. They are not Clash mechanics.
+A packet is intentionally richer than the eventual promoted registry entry. Promotion should extract the smallest claim supported by the evidence rather than copying an entire video session into the ruleset.
 
 ## Promotion rules
 
@@ -92,26 +101,29 @@ The numbers above are schema examples only. They are not Clash mechanics.
 
 - Candidate or rejected records cannot promote mechanics.
 - Numeric temporal parameters require Grade A current-patch gameplay footage plus a frame measurement.
-- Grade A must identify the active patch baseline.
-- Historical behavioral evidence requires Grade B plus explicit patch-continuity review.
+- Grade A must identify the active patch baseline and provide explicit patch-verification basis.
+- Historical behavioral evidence requires Grade B plus explicit patch-continuity review and rationale.
 - Evidence for an unregistered mechanic cannot be promoted until an evidence requirement is defined.
-- The validator rejects claimed timing precision finer than the source video's frame duration.
+- Claimed timing precision cannot outrun the decoded video evidence.
 
 ## Research loop
 
 1. Identify an unresolved mechanic in `src/rulesets/th7-combat.js`.
 2. Search recent gameplay video first.
-3. Add useful sources as Grade C candidates.
-4. Select a clip where the relevant interaction is visually isolated enough to measure.
-5. Determine patch provenance and source frame rate.
-6. Record frames/timestamps and the observation without interpreting beyond what the pixels establish.
-7. Classify A or B.
-8. Run the evidence validator.
-9. Only then copy/promote the resolved value or behavior into the versioned combat ruleset and add a golden regression fixture.
+3. Acquire a local media file through an allowed path and retain the source URL/metadata.
+4. Load the media into Evidence Lab; record its SHA-256 and decoded frame index.
+5. Select an interaction where the mechanic is visually isolatable.
+6. Mark only directly observable causal events in exact frames.
+7. Derive timing from PTS, not nominal FPS.
+8. Record patch provenance and uncertainty.
+9. Export a candidate evidence packet.
+10. Review/classify the evidence as A/B/C.
+11. Run the evidence validator.
+12. Only then promote the resolved value/behavior into the versioned combat ruleset and add a golden regression fixture.
 
 ## Current research queue
 
-The first full interaction target remains **Wizard L4 versus Cannon at TH7**, because it can exercise two independent ranged attack state machines and projectile-in-flight/death races.
+The first full interaction target remains **Wizard L4 versus Cannon L8 at TH7**, because it can exercise two independent ranged attack state machines and projectile-in-flight/death races.
 
 Highest-priority unresolved mechanics:
 
@@ -123,4 +135,6 @@ Highest-priority unresolved mechanics:
 6. Same-timestamp damage/death resolution.
 7. Destruction-to-retarget delay.
 
-No value should be filled merely to make that fixture run.
+Evidence Lab v0.1 handles temporal annotations and durations. Pixel→battlefield spatial calibration is the next prerequisite before projectile speed in tiles/second can be promoted.
+
+No value should be filled merely to make the Wizard ↔ Cannon fixture run.
