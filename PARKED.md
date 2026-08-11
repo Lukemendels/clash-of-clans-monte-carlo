@@ -127,6 +127,18 @@ Resume from the existing deterministic architecture:
 7. Replace the proxy Monte Carlo only after the deterministic kernel is trustworthy.
 8. Add AI later as a driver over exact trace/search loops, not as combat authority.
 
+## Archived upgrade-planner detour
+
+Later on August 11, the repository was briefly repurposed into a personal strategic-rush upgrade planner. That spike reached a current TH1→TH9 progression dataset, a deterministic Village Data Export parser, IndexedDB state persistence, and a mobile sync dashboard.
+
+The build was stopped after an existing web application proved it already satisfied the practical use case: village-data import, forward builder/Laboratory planning, sleep-window scheduling, offensive-rush priorities, storage deferral, and mobile usability. Continuing would have duplicated a solved problem rather than advancing the Basecracker proof of concept.
+
+The exact spike is preserved on branch:
+
+`archive/upgrade-planner-spike-2026-08-11`
+
+`main` was deliberately restored to the parked Basecracker checkpoint so future work starts from the combat/evidence architecture rather than the superseded planner direction.
+
 ## Final project state
 
 **Parked by choice. Option preserved.**
