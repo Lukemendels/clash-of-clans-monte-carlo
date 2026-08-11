@@ -1,5 +1,13 @@
 # AGENTS.md — repository operating contract
 
+## Project status
+
+**PARKED.** Read `PARKED.md` before proposing or implementing new work.
+
+Do not resume Basecracker merely because an implementation path is available. Resume only when one of the objective conditions in `PARKED.md` materially changes the economics of the remaining evidence/perception work, or when the operator explicitly overrides the parked decision.
+
+The August 11, 2026 upgrade-planner detour is not an active product direction. It is preserved on branch `archive/upgrade-planner-spike-2026-08-11` and was superseded after an existing tool satisfied the use case.
+
 ## Mission
 
 Build an external, local-first Clash of Clans simulation laboratory that represents a legal base explicitly, reproduces combat deterministically, and searches counterfactual attacks only after the kernel is trustworthy.
