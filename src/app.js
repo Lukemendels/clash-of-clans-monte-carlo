@@ -4,6 +4,8 @@ import { TH7_COMBAT_RULESET } from "./rulesets/th7-combat.js";
 import { validateBaseLegality } from "./legality.js";
 import { STRATEGIES, attackGeometry } from "./sim.js";
 import { runWizardBuilderHutFixture } from "./combat/kernel.js";
+import { CURRENT_PATCH_BASELINE, MECHANICS_EVIDENCE, summarizeEvidenceRegistry } from "./evidence/registry.js";
+import { validateEvidenceRegistry } from "./evidence/validate.js";
 import { projectionFromCanvas, tileToScreen, screenToTile } from "./projection.js";
 
 const $ = q => document.querySelector(q);
@@ -81,6 +83,8 @@ function bindControls(){
   $("#run-fixture").onclick=()=>{kernelTrace=runWizardBuilderHutFixture();renderKernel();toast("Deterministic combat fixture executed.");};
   $("#copy-trace").onclick=()=>{const trace=kernelTrace||runWizardBuilderHutFixture();copyText(JSON.stringify(trace,null,2),"Combat trace copied.");};
   $("#download-trace").onclick=()=>downloadJson("wizard-vs-builder-hut-trace.json",kernelTrace||runWizardBuilderHutFixture());
+  $("#copy-evidence").onclick=()=>copyText(JSON.stringify(evidenceExport(),null,2),"Mechanics evidence registry copied.");
+  $("#download-evidence").onclick=()=>downloadJson("mechanics-evidence-registry.json",evidenceExport());
   $("#run-crack").onclick=runCrack;
 }
 
@@ -215,17 +219,25 @@ function renderPaletteCounts(){
 
 function renderKernel(){
   const wizard=TH7_COMBAT_RULESET.troops.wizard.levels[4];
+  const cannon=TH7_COMBAT_RULESET.buildings.cannon.levels[8];
   const hut=TH7_COMBAT_RULESET.buildings.builder_hut.levels[1];
-  const unresolved=Object.entries(wizard).filter(([,v])=>v?.status==="unresolved").map(([k])=>k);
+  const unresolvedWizard=Object.entries(wizard).filter(([,v])=>v?.status==="unresolved").map(([k])=>k);
   $("#mechanics-summary").innerHTML=`
     <div class="metrics">
       <span>Wizard L4: ${wizard.damagePerAttack.value} dmg/hit</span>
       <span>${wizard.attackIntervalMs.value} ms cadence</span>
       <span>${wizard.hitpoints.value} HP</span>
-      <span>${wizard.rangeTiles.value} tile range</span>
       <span>Builder Hut L1: ${hut.hitpoints.value} HP</span>
     </div>
-    <p class="hint"><strong>Verified fields only.</strong> Unresolved: ${esc(unresolved.join(", "))}. These fields are excluded from the kernel rather than guessed.</p>`;
+    <div class="metrics">
+      <span>Cannon L8: ${cannon.damagePerAttack.value} dmg/shot</span>
+      <span>${cannon.attackIntervalMs.value} ms cadence</span>
+      <span>${cannon.hitpoints.value} HP</span>
+      <span>${cannon.rangeTiles.value} tile range</span>
+    </div>
+    <p class="hint"><strong>Verified nominal fields only.</strong> Wizard unresolved: ${esc(unresolvedWizard.join(", "))}. Timing/physics fields are evidence-blocked rather than guessed.</p>`;
+
+  renderEvidence();
 
   const pre=$("#kernel-trace");
   if(!kernelTrace){
@@ -233,6 +245,32 @@ function renderKernel(){
     return;
   }
   pre.textContent=JSON.stringify(kernelTrace,null,2);
+}
+
+function renderEvidence(){
+  const summary=summarizeEvidenceRegistry();
+  const validation=validateEvidenceRegistry(MECHANICS_EVIDENCE);
+  $("#evidence-summary").innerHTML=`
+    <div class="callout"><strong>${validation.valid?"EVIDENCE REGISTRY VALID":"EVIDENCE REGISTRY INVALID"}</strong><br>
+      Current patch baseline: ${esc(CURRENT_PATCH_BASELINE.label)} · ${esc(CURRENT_PATCH_BASELINE.effectiveDate)}.<br>
+      ${summary.accepted} accepted records · ${summary.candidate} candidates · ${summary.promotableVideo} accepted gameplay-video observations.
+      ${summary.promotableVideo===0?" No temporal/physics video evidence has been promoted yet.":""}
+    </div>`;
+
+  $("#evidence-table").innerHTML=MECHANICS_EVIDENCE.map(record=>{
+    const sourceLabel=record.source?.publisher||record.source?.kind||"source";
+    const source=record.source?.url?`<a href="${esc(record.source.url)}" target="_blank" rel="noreferrer">${esc(sourceLabel)}</a>`:esc(sourceLabel);
+    return `<tr><td>${esc(record.id)}</td><td><span class="evidence-grade">${esc(record.grade)}</span></td><td>${esc(record.status)}</td><td>${esc(record.mechanic)}</td><td>${source}</td></tr>`;
+  }).join("");
+
+  const queue=[];
+  for(const [entityLabel,record] of [["Wizard L4",TH7_COMBAT_RULESET.troops.wizard.levels[4]],["Cannon L8",TH7_COMBAT_RULESET.buildings.cannon.levels[8]]]){
+    for(const [field,value] of Object.entries(record)){
+      if(value?.status!=="unresolved" || !value.evidenceRequirement)continue;
+      queue.push({entityLabel,field,requirement:value.evidenceRequirement,evidenceCount:value.evidenceIds?.length||0,reason:value.reason});
+    }
+  }
+  $("#evidence-queue").innerHTML=`<div class="inventory-list">${queue.map(item=>`<div class="inventory-row"><span><strong>${esc(item.entityLabel)} · ${esc(item.field)}</strong><br><small>${esc(item.requirement)}</small></span><strong>${item.evidenceCount} promoted</strong><small>${esc(item.reason)}</small></div>`).join("")}</div>`;
 }
 
 function renderCrack(){
@@ -305,6 +343,15 @@ function finishWorkerError(msg){
   $("#progress").textContent=`Error: ${msg}`;
   if(worker)worker.terminate();
   worker=null;
+}
+
+function evidenceExport(){
+  return {
+    schema:"basecracker-mechanics-evidence/v1",
+    patchBaseline:CURRENT_PATCH_BASELINE,
+    records:MECHANICS_EVIDENCE,
+    validation:validateEvidenceRegistry(MECHANICS_EVIDENCE),
+  };
 }
 
 function importBase(e){
