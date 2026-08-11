@@ -1,5 +1,7 @@
 # Basecracker — TH7 Deterministic Combat Lab
 
+> **Project status: PARKED intentionally as of 2026-08-11.** The proof of concept established the architecture; further development is deferred until the video/evidence loop can run with very little operator effort. See [`PARKED.md`](./PARKED.md) for the decision, current stopping point, and explicit resume conditions.
+
 Basecracker is a local-first Clash of Clans research system for building authoritative base state, reproducing combat mechanics deterministically, and eventually searching enormous attack-policy spaces with Monte Carlo methods.
 
 The current architecture is deliberately **AI-free at runtime**. The simulator must become trustworthy before a model is allowed to drive search or interpret traces.
@@ -116,6 +118,7 @@ Screenshot ingestion is an optional later convenience layer. A human can build t
 
 ## Repository contracts
 
+- `PARKED.md` — current project status, stopping point, and objective resume conditions.
 - `src/rulesets/th7.js` — authoritative TH7 legality envelope.
 - `src/rulesets/th7-combat.js` — provenance-bearing combat mechanics corpus.
 - `src/combat/kernel.js` — deterministic combat event resolution.
