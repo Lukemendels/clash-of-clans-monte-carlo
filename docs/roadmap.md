@@ -17,7 +17,8 @@ The early screenshot / runtime-model experiments were intentionally discarded fr
 - [x] inventory / level / footprint / overlap validation
 - [x] full max-inventory TH7 demo
 - [x] field-level mechanics provenance schema
-- [x] first verified troop/building records: Wizard L4 + Builder Hut L1
+- [x] verified nominal records for Wizard L4, Cannon L8, and Builder Hut L1
+- [x] mechanics-evidence registry + patch/grade promotion gates
 - [ ] complete TH7 building HP / defensive mechanics
 - [ ] complete TH7 troop statistics and level availability
 - [ ] complete TH7 wall / trap / spell / hero mechanics
@@ -50,13 +51,35 @@ Exit condition: a complete fixed TH7 attack produces the same replayable event t
 
 ## M3 — validation against observed Clash behavior
 
-- [ ] golden micro-interaction capture protocol
+- [x] define gameplay-evidence grades and conservative promotion protocol
+- [x] Evidence Lab v0.1 as a separate local application
+- [x] local-video SHA-256 binding
+- [x] ffprobe decoded-frame PTS index
+- [x] exact-frame ffmpeg inspector
+- [x] human causal-event annotation
+- [x] deterministic PTS duration measurement
+- [x] candidate evidence-packet export
+- [ ] spatial pixel→battlefield calibration
+- [ ] current-patch Wizard L4 ↔ Cannon L8 evidence set
 - [ ] compare predicted hit counts and timestamps with observed attacks
 - [ ] quantify movement / targeting / projectile error
 - [ ] regression fixtures for every resolved discrepancy
 - [ ] prevent features from being labeled exact before calibration
 
 Exit condition: kernel error is measured mechanic-by-mechanic rather than assumed away.
+
+## M3.1 — evidence assistance, only where useful
+
+Evidence production may become partially automated without moving authority into ML:
+
+- [ ] deterministic frame differencing / optical flow
+- [ ] assisted troop/building tracking
+- [ ] ML-assisted projectile localization from adjacent frames
+- [ ] automatic candidate-event suggestions
+- [ ] human acceptance/correction before evidence export
+- [ ] deterministic measurement remains downstream of accepted tracks/events
+
+Exit condition: automation reduces annotation labor without changing the evidence authority boundary.
 
 ## M4 — exact Monte Carlo attacker
 
