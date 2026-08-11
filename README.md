@@ -1,18 +1,31 @@
 # Basecracker — TH7 Deterministic Combat Lab
 
-Basecracker is a local-first PWA for building an authoritative Clash of Clans base state, reproducing combat mechanics deterministically, and eventually searching enormous attack-policy spaces with Monte Carlo methods.
+Basecracker is a local-first Clash of Clans research system for building authoritative base state, reproducing combat mechanics deterministically, and eventually searching enormous attack-policy spaces with Monte Carlo methods.
 
 The current architecture is deliberately **AI-free at runtime**. The simulator must become trustworthy before a model is allowed to drive search or interpret traces.
+
+## System split
+
+Basecracker now has two deliberately separate applications:
+
+1. **Basecracker PWA** — authoritative TH7 base state, legality, combat rulesets, deterministic kernel, and eventually Monte Carlo search.
+2. **Basecracker Evidence Lab** — localhost video-analysis tool that turns gameplay footage into reproducible frame/PTS observations and candidate mechanics evidence.
+
+The PWA has no backend. Evidence Lab is a separate local Python + ffmpeg tool and is not deployed through GitHub Pages.
 
 ## Core loop
 
 `legal base state → versioned mechanics → deterministic combat events → replay/validation → Monte Carlo search → human execution`
 
-Later, machine cognition can sit outside that loop:
+Evidence/calibration feeds that loop through a separate path:
+
+`gameplay video bytes → SHA-256 → decoded frame PTS → human event annotations → deterministic measurement → reviewed evidence promotion → versioned mechanics`
+
+Later, machine cognition can sit outside the simulation loop:
 
 `simulation traces → model proposes search neighborhoods / hypotheses → deterministic engine tests them`
 
-A model never owns base state, game mechanics, combat resolution, or validation.
+A model never owns base state, game mechanics, combat resolution, evidence promotion, or validation.
 
 ## Current capability
 
@@ -25,7 +38,8 @@ A model never owns base state, game mechanics, combat resolution, or validation.
 - Nominal exact records currently include Wizard L4, Cannon L8, and Builder Hut L1.
 - First deterministic golden combat fixture: Wizard level 4 vs Builder Hut level 1.
 - Replayable combat event trace with an explicit epistemic boundary: time zero is first impact until first-shot/projectile mechanics are sourced.
-- First-class gameplay evidence registry for YouTube/video calibration, patch classification, frame measurements, uncertainty, and promotion gates.
+- First-class gameplay evidence registry for video calibration, patch classification, frame measurements, uncertainty, and promotion gates.
+- Separate Evidence Lab v0.1 for local video ingest, SHA-256 binding, ffprobe native-frame timestamps, exact-frame inspection, event annotation, deterministic PTS measurement, and candidate evidence export.
 - Legacy proxy Monte Carlo harness retained only as scaffolding; its percentages are not Clash probabilities.
 - GitHub Pages deployment and deterministic test CI.
 
@@ -52,24 +66,19 @@ Evidence collection and mechanic promotion are intentionally different operation
 - **Grade C — unverified:** useful source candidate only; cannot enter authoritative mechanics.
 - **Static reference:** official/wiki/reference records for nominal values such as HP, damage, range, and advertised attack cadence.
 
-Numeric timing records must retain the source FPS, frame interval, derived duration, and at least one source-frame of measurement uncertainty. `src/evidence/validate.js` enforces promotion gates.
+Publication date alone is not patch proof. Grade A footage must record why the observed gameplay belongs to the active patch.
 
-The active patch baseline from the 2026-08-10 evidence audit is Supercell's July 9, 2026 **July Balance Update**. A newer gameplay/balance update requires the baseline and affected evidence to be reviewed.
+Evidence Lab exports candidate evidence only. It never promotes a number or behavioral rule into the combat ruleset.
 
-See `docs/mechanics-evidence.md` for the research protocol.
+See `docs/mechanics-evidence.md` and `evidence-lab/README.md`.
 
 ## First golden fixture
 
-The current exact slice uses verified values for:
-
-- Wizard L4 damage per attack, HP, attack cadence, range, movement speed, and attack type;
-- Builder Hut L1 HP and footprint.
-
-It can prove the damage sequence and cadence relative to first impact. It does **not** yet claim exact deployment-to-first-impact timing because first-attack delay and projectile travel are unresolved.
+The current exact slice uses verified values for Wizard L4 damage/cadence and Builder Hut L1 HP. It can prove the repeated-impact sequence relative to first impact.
 
 The next full golden interaction is **Wizard L4 ↔ Cannon L8**. Nominal HP/damage/cadence are recorded. Animation wind-up, projectile launch, projectile flight, source-death persistence, and same-timestamp event ordering remain blocked on gameplay evidence.
 
-## Run locally
+## Run the PWA locally
 
 ```bash
 npm test
@@ -78,11 +87,27 @@ npm run serve
 
 Then open `http://localhost:8080`.
 
+## Run Evidence Lab
+
+Requires Python plus `ffmpeg`/`ffprobe` on PATH.
+
+```bash
+npm run evidence-lab
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8765
+```
+
+Evidence Lab copies media only into the Git-ignored local `evidence-lab/workspace/` directory.
+
 ## Architecture direction
 
 1. **M1 — authoritative rulesets + evidence corpus**: complete TH7 inventory, field-level mechanics provenance, and gameplay evidence promotion.
 2. **M2 — deterministic combat kernel**: clock, targeting, movement, range, attack cycles, projectiles, destruction, retargeting, walls, defenses, traps, spells, heroes.
-3. **M3 — replay/calibration**: compare event traces with observed in-game interactions and quantify errors.
+3. **M3 — replay/calibration**: use Evidence Lab to compare event traces with observed interactions and quantify errors.
 4. **M4 — exact Monte Carlo attacker**: search concrete armies, coordinates, timings, branches, and execution tolerances by repeatedly invoking the deterministic kernel.
 5. **M5 — machine cognition**: use an external model to analyze trace populations and propose mutations/search neighborhoods; deterministic simulation remains judge.
 6. **M6 — inverse base design**: mutate legal bases and co-evolve attacker and defender populations.
@@ -96,6 +121,7 @@ Screenshot ingestion is an optional later convenience layer. A human can build t
 - `src/combat/kernel.js` — deterministic combat event resolution.
 - `src/evidence/registry.js` — mechanics evidence records and active patch baseline.
 - `src/evidence/validate.js` — evidence validation and promotion gates.
+- `evidence-lab/` — separate local video evidence workbench.
 - `src/model.js` — authoritative base-state model and full TH7 demo.
 - `src/legality.js` — deterministic base validation.
 - `docs/mechanics-evidence.md` — gameplay/video evidence protocol.
