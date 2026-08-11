@@ -14,7 +14,7 @@
 <body>
   <header class="app-header">
     <div><p class="eyebrow">DETERMINISTIC CLASH COMBAT LAB</p><h1>Basecracker</h1></div>
-    <div class="status-chip">TH7 · exact-kernel v0.1</div>
+    <div class="status-chip">TH7 · exact-kernel v0.2 · evidence</div>
   </header>
 
   <nav class="tabs" aria-label="Workbench stages">
@@ -94,7 +94,7 @@
     <section id="panel-kernel" class="panel">
       <div class="panel-heading">
         <div><p class="kicker">VERIFIED MECHANICS → EVENTS</p><h2>Deterministic combat kernel</h2></div>
-        <p>The first golden fixture models only mechanics we can currently source exactly. Unknown timing fields block features that require them; they are never filled with plausible guesses.</p>
+        <p>Static stats come from provenance-bearing references; timing and causal physics can be promoted from gameplay video only after explicit evidence gates pass.</p>
       </div>
 
       <div class="two-col">
@@ -113,9 +113,25 @@
         <article class="card">
           <h3>Combat ruleset</h3>
           <div id="combat-ruleset-id" class="callout"></div>
-          <p class="hint">This is a partial exact ruleset, not a complete Clash clone. Each field carries provenance and resolution status. The kernel throws if a required field is unresolved.</p>
+          <p class="hint">The next full golden interaction is Wizard L4 ↔ Cannon L8. Nominal damage/HP/cadence are recorded; animation, launch, projectile flight, death persistence, and same-timestamp resolution remain evidence-blocked.</p>
         </article>
       </div>
+
+      <article class="card">
+        <div class="side-heading"><h3>Mechanics evidence</h3><span class="muted">collection ≠ promotion</span></div>
+        <div id="evidence-summary"></div>
+        <div class="toolbar wrap">
+          <button id="copy-evidence" class="secondary">Copy registry</button>
+          <button id="download-evidence" class="secondary">Download registry</button>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>Evidence</th><th>Grade</th><th>Status</th><th>Mechanic</th><th>Source</th></tr></thead><tbody id="evidence-table"></tbody></table></div>
+        <p class="hint">Grade A = current-patch frame-audited gameplay. Grade B = historical behavioral invariant with patch-continuity review. Grade C = source candidate only. Numeric timing cannot be promoted from Grade B/C.</p>
+      </article>
+
+      <article class="card">
+        <div class="side-heading"><h3>Wizard ↔ Cannon evidence queue</h3><span class="muted">blocked fields</span></div>
+        <div id="evidence-queue"></div>
+      </article>
 
       <article class="card code-card">
         <div class="side-heading"><h3>Replayable event trace</h3><span class="muted">same input → same events</span></div>
