@@ -1,75 +1,81 @@
 # AGENTS.md — repository operating contract
 
-## Mission
+## Active mission
 
-Build an external, local-first Clash of Clans simulation laboratory that represents a legal base explicitly, reproduces combat deterministically, and searches counterfactual attacks only after the kernel is trustworthy.
+Build a personal, deterministic Clash of Clans upgrade scheduler for one Home Village. The current bounded objective is a three-builder strategic rush to **max offensive progression at Town Hall 9**, after which the strategy will be explicitly recoded for a new bounded goal.
 
-## Architectural invariants
+The earlier exact-combat Basecracker experiment remains parked in `PARKED.md`. Do not resume combat/video work as part of upgrade-planner tasks.
 
-1. **Authoritative state is explicit.** Base identity, level, tile anchor, footprint, walls, traps, and markers come from validated state—not model inference.
-2. **No guessed combat mechanics.** Every value required by exact simulation must be verified, derived with recorded provenance, or remain unresolved.
-3. **Unresolved mechanics block dependent features.** Do not substitute plausible timing, HP, damage, targeting, pathing, projectile, or movement values.
-4. **Combat resolution is deterministic.** Same state + same actions + same explicit random seed, where randomness is legitimately modeled, must produce the same ordered event trace.
-5. **Monte Carlo varies worlds and policies, not combat truth.** Each sampled world is resolved by the deterministic kernel.
-6. **Rules and mechanics live outside UI code.** Versioned rulesets and the combat kernel are the truth layer.
-7. **Evidence collection is not evidence promotion.** Evidence Lab may produce candidate observations; only the evidence validator/review process may promote mechanics.
-8. **Video timing uses decoded timestamps.** Never infer authoritative timing from frame index divided by nominal FPS. Preserve media hash, PTS/time base, tool versions, and measurement uncertainty.
-9. **The PWA and Evidence Lab remain separate applications.** The PWA is the simulator. `evidence-lab/` is localhost media/evidence infrastructure and is not a Pages dependency.
-10. **ML may assist perception, never truth.** Future ML can propose object tracks, projectile locations, or likely event frames. Human acceptance and deterministic measurement are required before evidence enters review.
-11. **Legacy proxy results are never presented as Clash probabilities.** The proxy harness is scaffolding until replaced.
-12. **No runtime AI dependency in the current simulation phase.** A model may return later as an outer search/analysis driver over exact traces, never as ruleset or combat authority.
-13. **No live-client automation or modification.** This repository is an external simulator and planning tool.
-14. **No proprietary game assets.** Use neutral UI graphics and structured game-state data.
+## Upgrade-planner invariants
+
+1. **The strategy is personal, not generalized.** Hard-code the current operator policy instead of adding settings, accounts, or multi-user abstractions.
+2. **Three builders are authoritative.** Builder scheduling assumes exactly 3 Home Village builders for this bounded goal.
+3. **Protect the sleep window.** The operator sleeps 21:00–03:30 local time. Avoid preventable builder completion/idle during that window and ensure all three builders are occupied at 21:00 whenever legal/resource-feasible work exists.
+4. **Laboratory is a separate scheduling lane.** Keep research occupied whenever eligible/resources permit. Existing research may continue while the Laboratory building upgrades; new research cannot begin until the Laboratory building upgrade completes.
+5. **Strategically rush to TH9.** Place every mandatory newly unlocked building/trap; advance Town Hall as soon as legal and consistent with the offensive critical path.
+6. **Offense before defense.** Prioritize Laboratory, Army Camps, Barracks, Dark Barracks, Spell Factories, Hero Hall, Clan Castle, Blacksmith, heroes, and Laboratory research. Do not level defenses before the bounded max-offense TH9 target.
+7. **Storages are prerequisites, not goals.** Upgrade Gold/Elixir/Dark Elixir storage only when aggregate capacity blocks a higher-priority action.
+8. **Do not invent resource income.** Farming/loot rate is exogenous. Use current balances or explicit scenario assumptions; never fabricate an income rate to make a schedule feasible.
+9. **Plan the whole path.** The solver should reason over the remaining dependency graph to max-offense TH9 rather than greedily choosing only the locally best next upgrade.
+10. **Current game data is versioned and sourced.** Costs, times, caps, unlocks, and progression rules must carry an audit date. Current Clash Wiki tables are working structured sources; official Supercell release notes override historical assumptions. Older third-party datasets are cross-checks only.
+11. **Village export before APIs.** Prefer the in-game Village Data Export as authoritative imported village state. Do not add a Supercell developer API backend, browser secret, `.env`, GitHub Secret, or IP allowlist unless the export demonstrably lacks required state that the API can provide.
+12. **Bounded-goal stop is real.** Never advance beyond TH9 under this strategy. When max-offense TH9 is reached, stop and require a new strategy definition before scheduling TH10 or defensive maxing.
+
+## Current target
+
+`src/progression/target-th9.js` defines the timer-bearing max-offense TH9 target:
+
+- TH9;
+- 4 Army Camps L7;
+- Barracks L11;
+- Laboratory L7;
+- Spell Factory L4;
+- Dark Barracks L6;
+- Dark Spell Factory L4;
+- Hero Hall L3;
+- Clan Castle L5;
+- Blacksmith L2;
+- Barbarian King L30;
+- Archer Queen L30;
+- Minion Prince L10;
+- every troop/spell Laboratory level reachable at TH9.
+
+Hero-equipment ore levels are a separate non-timer economy in v1 and must not distort the builder/Laboratory scheduling objective.
+
+## Development order
+
+1. **Phase 1 — current progression data.** Complete and test TH1→TH9 costs, times, placement gates, offense, heroes, research, and storage prerequisites.
+2. **Phase 2 — actual village import.** Inspect one raw in-game Village Data Export and build a deterministic parser/canonical state mapper. Ask for only state the export does not contain.
+3. **Phase 3 — schedule solver.** Compute the remaining whole-path plan across Builder 1 / Builder 2 / Builder 3 / Laboratory with sleep-window and capacity constraints.
+4. **Phase 4 — PWA.** Build the UI around Now / Next / Tonight / Path / Sync Village. Do not design the UI before the state and schedule are trustworthy.
+5. **Phase 5 — recode bounded goal.** At max-offense TH9, freeze the completed strategy and explicitly define the defensive-max-TH9 plan before TH10.
 
 ## Code style
 
-- Browser-native ES modules for the PWA; avoid a build tool until it buys something material.
-- Evidence Lab may use the Python standard library plus external `ffmpeg`/`ffprobe`; avoid adding Python package dependencies without a demonstrated need.
-- Prefer pure functions for rules, legality, combat resolution, evidence measurement, and search.
-- Keep PWA paths relative so GitHub Pages subpath hosting works.
-- Keep Evidence Lab bound to localhost and local media under its Git-ignored workspace.
-- Add deterministic golden fixtures before expanding a mechanic into larger simulations.
-- Keep field-level provenance with combat data.
-- Make epistemic boundaries visible in code and UI.
+- Browser-native ES modules; avoid a build tool until it materially helps.
+- Prefer pure functions for progression rules, state normalization, scheduling, and validation.
+- Keep PWA paths relative for GitHub Pages.
+- Put versioned game data in `src/progression/` and personal policy in `src/strategy/`.
+- Add deterministic regression tests for current-version facts that can silently invalidate the schedule.
+- Make data gaps explicit and block dependent claims instead of guessing.
 
-## Mechanics change protocol
+## Data-change protocol
 
-For any mechanics change:
+For any cost/time/unlock/progression change:
 
-1. identify the exact game mechanic;
-2. record its source/provenance;
-3. classify each required field as verified, derived-verified, or unresolved;
-4. if video-derived, retain the exact media SHA-256 plus frame/PTS evidence and pass promotion gates;
-5. add/update a deterministic golden test;
-6. preserve replay determinism;
-7. document the temporal/spatial reference frame;
-8. invalidate prior search results if mechanics semantics changed.
+1. identify the exact current game fact;
+2. verify it against a current source and relevant official patch history when needed;
+3. update the versioned record and audit date if appropriate;
+4. update/add a deterministic regression test;
+5. invalidate/recompute any previously generated schedule that depends on the changed fact.
 
-## Evidence Lab change protocol
+## Legacy Basecracker boundary
 
-For video/evidence tooling:
+The following remain in the repository as a parked proof of concept and are not the active product direction:
 
-1. preserve original media bytes and bind observations to SHA-256;
-2. use ffprobe decoded-frame timestamps as the clock;
-3. treat browser playback as coarse navigation only;
-4. make exact-frame extraction reproducible from original media;
-5. export candidate evidence rather than silently updating rulesets;
-6. keep ML/optical-flow assistance downstream of raw media and upstream of human acceptance;
-7. keep final measurements deterministic from accepted frames/tracks.
+- deterministic TH7 combat ruleset/kernel;
+- Monte Carlo proxy scaffold;
+- gameplay mechanics evidence registry;
+- Evidence Lab video tooling.
 
-## Build order
-
-Expand from micro-interactions upward:
-
-1. damage impacts;
-2. acquisition;
-3. movement/range;
-4. first-shot and projectile timing;
-5. destruction/retargeting;
-6. defensive fire;
-7. walls/pathfinding;
-8. concurrency and area effects;
-9. traps/spells/heroes/CC;
-10. full TH7 attack replay;
-11. exact Monte Carlo search;
-12. optional machine-cognition driver over trace populations.
+Preserve them unless a cleanup is explicitly authorized. Do not spend upgrade-planner cycles extending them.
