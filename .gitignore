@@ -1,0 +1,6 @@
+# Basecracker Evidence Lab local media/cache
+/evidence-lab/workspace/
+
+# Python
+__pycache__/
+*.pyc
