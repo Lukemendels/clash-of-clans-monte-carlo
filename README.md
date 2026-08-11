@@ -1,136 +1,101 @@
-# Basecracker — TH7 Deterministic Combat Lab
+# Clash Upgrade Planner
 
-> **Project status: PARKED intentionally as of 2026-08-11.** The proof of concept established the architecture; further development is deferred until the video/evidence loop can run with very little operator effort. See [`PARKED.md`](./PARKED.md) for the decision, current stopping point, and explicit resume conditions.
+> **Active direction as of 2026-08-11:** repurpose the existing Basecracker PWA into a personal deterministic upgrade scheduler for a three-builder strategic rush to max offensive progression at Town Hall 9.
+>
+> The earlier exact-combat simulation experiment remains intentionally parked. See [`PARKED.md`](./PARKED.md) for that proof of concept and its resume conditions.
 
-Basecracker is a local-first Clash of Clans research system for building authoritative base state, reproducing combat mechanics deterministically, and eventually searching enormous attack-policy spaces with Monte Carlo methods.
+## Current bounded goal
 
-The current architecture is deliberately **AI-free at runtime**. The simulator must become trustworthy before a model is allowed to drive search or interpret traces.
+Plan the fastest practical path from the current Home Village state to **max offense at TH9**, using a hard-coded personal strategy:
 
-## System split
+- 3 builders;
+- sleep 21:00–03:30 local time;
+- keep all 3 builders occupied through the sleep window whenever feasible;
+- keep Laboratory research running whenever eligible/resources allow;
+- strategically rush through TH7/TH8 to TH9;
+- place all mandatory newly unlocked structures/traps;
+- prioritize offensive infrastructure and heroes;
+- do not level defenses before the TH9 offense target;
+- upgrade storage only when aggregate capacity blocks a higher-priority action;
+- never fabricate a farming/resource-income rate.
 
-Basecracker now has two deliberately separate applications:
+At max-offense TH9, stop and recode the strategy for the next bounded goal: defensive max TH9 before TH10.
 
-1. **Basecracker PWA** — authoritative TH7 base state, legality, combat rulesets, deterministic kernel, and eventually Monte Carlo search.
-2. **Basecracker Evidence Lab** — localhost video-analysis tool that turns gameplay footage into reproducible frame/PTS observations and candidate mechanics evidence.
+See [`docs/upgrade-planner.md`](./docs/upgrade-planner.md) for the implementation plan and exact target definition.
 
-The PWA has no backend. Evidence Lab is a separate local Python + ffmpeg tool and is not deployed through GitHub Pages.
+## Phase 1 — progression ruleset
 
-## Core loop
+The first current-data pass is implemented as deterministic ES modules:
 
-`legal base state → versioned mechanics → deterministic combat events → replay/validation → Monte Carlo search → human execution`
+- `src/progression/core-th1-th9.js` — Town Hall progression, mandatory building placement, offensive structures, and storage capacity/cost/time tables;
+- `src/progression/mandatory-traps-th1-th9.js` — mandatory trap counts and initial placement costs;
+- `src/progression/heroes-th9.js` — King / Queen / Minion Prince progression to TH9 caps;
+- `src/progression/research-th9.js` — TH9-reachable troop/spell research costs and times;
+- `src/progression/target-th9.js` — bounded max-offense TH9 target;
+- `src/strategy/luke-th9-rush.js` — hard-coded strategy and 21:00–03:30 sleep-window semantics;
+- `tests/upgrade-progression.test.mjs` — regression tests for current-version facts and planner invariants.
 
-Evidence/calibration feeds that loop through a separate path:
+The ruleset is pinned to an audit date. Current Clash Wiki tables are used as working structured sources; official Supercell release notes take precedence where progression rules changed. Older structured datasets are cross-checks only.
 
-`gameplay video bytes → SHA-256 → decoded frame PTS → human event annotations → deterministic measurement → reviewed evidence promotion → versioned mechanics`
+## Next phase — actual village state
 
-Later, machine cognition can sit outside the simulation loop:
+The preferred input is the in-game **Village Data Export**, not an authenticated backend.
 
-`simulation traces → model proposes search neighborhoods / hypotheses → deterministic engine tests them`
+Next step:
 
-A model never owns base state, game mechanics, combat resolution, evidence promotion, or validation.
+1. paste/import one raw Village Data Export;
+2. inspect its schema;
+3. deterministically map it to the planner state;
+4. determine whether active builder/Laboratory finish timestamps are included;
+5. request only whatever state the export does not contain.
 
-## Current capability
+No Supercell developer API key, `.env`, GitHub Secret, IP allowlist, or user-account system should be added unless the Village Data Export proves insufficient.
 
-- Static installable PWA; no backend and no runtime dependencies.
-- Authoritative TH7 base builder on a 44×44 logical grid.
-- Current TH7 inventory, level ceilings, footprints, traps, walls, Hero Hall / Hero Banner, and Builder Huts.
-- Deterministic legality validation for counts, levels, bounds, footprints, and occupied-tile collisions.
-- Complete max-inventory TH7 demo: 54 buildings, 175 walls, 15 traps, and one Hero Banner.
-- Provenance-bearing partial TH7 combat ruleset.
-- Nominal exact records currently include Wizard L4, Cannon L8, and Builder Hut L1.
-- First deterministic golden combat fixture: Wizard level 4 vs Builder Hut level 1.
-- Replayable combat event trace with an explicit epistemic boundary: time zero is first impact until first-shot/projectile mechanics are sourced.
-- First-class gameplay evidence registry for video calibration, patch classification, frame measurements, uncertainty, and promotion gates.
-- Separate Evidence Lab v0.1 for local video ingest, SHA-256 binding, ffprobe native-frame timestamps, exact-frame inspection, event annotation, deterministic PTS measurement, and candidate evidence export.
-- Legacy proxy Monte Carlo harness retained only as scaffolding; its percentages are not Clash probabilities.
-- GitHub Pages deployment and deterministic test CI.
+## Solver direction
 
-## Exactness policy
+The solver should plan the complete remaining path rather than greedily choose one upgrade at a time.
 
-Basecracker does not fill missing mechanics with plausible values.
+Conceptual scheduling lanes:
 
-Every combat field is either:
+- Builder 1
+- Builder 2
+- Builder 3
+- Laboratory
 
-- `verified` — value plus source/provenance;
-- `derived-verified` — logically derived from sourced facts, with the derivation recorded; or
-- `unresolved` — unavailable for exact simulation until sourced.
+The objective should heavily penalize critical-path delay, builder idle time, Laboratory idle time, and avoidable upgrade completions during the 21:00–03:30 sleep window.
 
-If a feature requires an unresolved field, the exact kernel must refuse to claim that feature rather than guess.
+Storage upgrades have no intrinsic priority. They enter the dependency graph only when current capacity is insufficient for a higher-priority upgrade.
 
-## Gameplay evidence policy
+## PWA direction
 
-Static tables are not enough for timing and projectile causality. Basecracker therefore treats gameplay footage as empirical evidence.
+The eventual personal PWA should stay small:
 
-Evidence collection and mechanic promotion are intentionally different operations:
+- **Now** — current builder/Laboratory work;
+- **Next** — what to start when a lane frees;
+- **Tonight** — what must be running before 21:00;
+- **Path** — progress toward max-offense TH9;
+- **Sync village** — paste/import current Village Data Export.
 
-- **Grade A — current patch:** frame-audited current-patch gameplay. Required for numeric temporal calibration.
-- **Grade B — historical invariant:** older footage proving a qualitative behavior, promoted only after explicit review that no intervening patch changed the mechanic.
-- **Grade C — unverified:** useful source candidate only; cannot enter authoritative mechanics.
-- **Static reference:** official/wiki/reference records for nominal values such as HP, damage, range, and advertised attack cadence.
+No generalized strategy editor, accounts, or multi-user product surface is required.
 
-Publication date alone is not patch proof. Grade A footage must record why the observed gameplay belongs to the active patch.
+## Legacy combat proof of concept
 
-Evidence Lab exports candidate evidence only. It never promotes a number or behavioral rule into the combat ruleset.
+The repository still contains the earlier Basecracker deterministic-combat work:
 
-See `docs/mechanics-evidence.md` and `evidence-lab/README.md`.
+- authoritative TH7 base builder and legality ruleset;
+- partial provenance-bearing combat ruleset;
+- deterministic Wizard L4 → Builder Hut L1 damage fixture;
+- gameplay mechanics evidence registry;
+- local Evidence Lab video workbench;
+- legacy proxy Monte Carlo scaffold.
 
-## First golden fixture
+That branch of the idea is parked because reaching exact combat fidelity would require a much larger empirical video/vision pipeline and too much operator attention for a hobby proof of concept. It should not be resumed unless machine perception/evidence processing becomes substantially more autonomous.
 
-The current exact slice uses verified values for Wizard L4 damage/cadence and Builder Hut L1 HP. It can prove the repeated-impact sequence relative to first impact.
-
-The next full golden interaction is **Wizard L4 ↔ Cannon L8**. Nominal HP/damage/cadence are recorded. Animation wind-up, projectile launch, projectile flight, source-death persistence, and same-timestamp event ordering remain blocked on gameplay evidence.
-
-## Run the PWA locally
+## Development
 
 ```bash
 npm test
 npm run serve
 ```
 
-Then open `http://localhost:8080`.
-
-## Run Evidence Lab
-
-Requires Python plus `ffmpeg`/`ffprobe` on PATH.
-
-```bash
-npm run evidence-lab
-```
-
-Then open:
-
-```text
-http://127.0.0.1:8765
-```
-
-Evidence Lab copies media only into the Git-ignored local `evidence-lab/workspace/` directory.
-
-## Architecture direction
-
-1. **M1 — authoritative rulesets + evidence corpus**: complete TH7 inventory, field-level mechanics provenance, and gameplay evidence promotion.
-2. **M2 — deterministic combat kernel**: clock, targeting, movement, range, attack cycles, projectiles, destruction, retargeting, walls, defenses, traps, spells, heroes.
-3. **M3 — replay/calibration**: use Evidence Lab to compare event traces with observed interactions and quantify errors.
-4. **M4 — exact Monte Carlo attacker**: search concrete armies, coordinates, timings, branches, and execution tolerances by repeatedly invoking the deterministic kernel.
-5. **M5 — machine cognition**: use an external model to analyze trace populations and propose mutations/search neighborhoods; deterministic simulation remains judge.
-6. **M6 — inverse base design**: mutate legal bases and co-evolve attacker and defender populations.
-
-Screenshot ingestion is an optional later convenience layer. A human can build the authoritative base directly; image reconstruction is not a prerequisite for the simulator.
-
-## Repository contracts
-
-- `PARKED.md` — current project status, stopping point, and objective resume conditions.
-- `src/rulesets/th7.js` — authoritative TH7 legality envelope.
-- `src/rulesets/th7-combat.js` — provenance-bearing combat mechanics corpus.
-- `src/combat/kernel.js` — deterministic combat event resolution.
-- `src/evidence/registry.js` — mechanics evidence records and active patch baseline.
-- `src/evidence/validate.js` — evidence validation and promotion gates.
-- `evidence-lab/` — separate local video evidence workbench.
-- `src/model.js` — authoritative base-state model and full TH7 demo.
-- `src/legality.js` — deterministic base validation.
-- `docs/mechanics-evidence.md` — gameplay/video evidence protocol.
-- `docs/architecture.md` — system boundaries.
-- `docs/roadmap.md` — implementation sequence.
-
-## Non-goals / boundaries
-
-Basecracker does not modify the Clash of Clans client, automate live-game taps, intercept network traffic, or ship Supercell proprietary assets. It is an external analysis and simulation workbench.
+The existing static PWA is served at `http://localhost:8080`. Its current UI still reflects the parked combat prototype; repurposing the UI occurs only after the progression ruleset, village-state import, and schedule are trustworthy.
