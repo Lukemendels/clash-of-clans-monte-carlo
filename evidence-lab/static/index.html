@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Basecracker Evidence Lab</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">BASECRACKER · MECHANICS RESEARCH</p>
+      <h1>Evidence Lab</h1>
+      <p class="lede">Native video frames → human event annotations → deterministic PTS measurements → candidate evidence packet.</p>
+    </div>
+    <div id="health" class="status">Checking ffmpeg…</div>
+  </header>
+
+  <main>
+    <section class="card ingest">
+      <div class="section-head">
+        <div><p class="kicker">1 · INGEST</p><h2>Load local gameplay video</h2></div>
+        <span class="badge">local only</span>
+      </div>
+      <p>The file is copied into the ignored local Evidence Lab workspace, hashed with SHA-256, then decoded with ffprobe. Original frame timestamps remain authoritative.</p>
+      <label class="file-button">Choose video<input id="video-file" type="file" accept="video/*" hidden></label>
+      <span id="upload-status" class="muted">No video loaded.</span>
+      <div id="media-summary" class="metrics"></div>
+    </section>
+
+    <section class="two-col">
+      <article class="card">
+        <div class="section-head"><div><p class="kicker">SOURCE</p><h2>Evidence provenance</h2></div></div>
+        <div class="form-grid">
+          <label>YouTube/source URL<input id="source-url" type="url" placeholder="https://www.youtube.com/watch?v=…"></label>
+          <label>Video title<input id="source-title" type="text"></label>
+          <label>Channel<input id="source-channel" type="text"></label>
+          <label>Published date<input id="source-published" type="date"></label>
+          <label>Observed patch<input id="observed-patch" type="text" value="patch-2026-07-09-july-balance-update"></label>
+          <label>Patch verification basis<textarea id="patch-basis" rows="3" placeholder="Why this footage is believed to represent the stated patch. Upload date alone is not sufficient."></textarea></label>
+          <label>Attacker<input id="attacker" type="text" value="wizard:4"></label>
+          <label>Target<input id="target" type="text" value="cannon:8"></label>
+          <label class="wide">Interaction context<input id="interaction-context" type="text" placeholder="e.g. isolated Wizard L4 approaching Cannon L8"></label>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="section-head"><div><p class="kicker">PROMOTION BOUNDARY</p><h2>Candidate by default</h2></div></div>
+        <p>Evidence Lab never promotes a mechanic into the combat ruleset. It creates reproducible candidate observations. Promotion remains a separate reviewed action against the evidence gates.</p>
+        <label class="check"><input id="continuity-reviewed" type="checkbox"> Historical patch continuity reviewed</label>
+        <label>Continuity rationale<textarea id="continuity-note" rows="4" placeholder="Required before older footage can establish an invariant."></textarea></label>
+        <label>Research notes<textarea id="research-notes" rows="5"></textarea></label>
+      </article>
+    </section>
+
+    <section class="card viewer-card">
+      <div class="section-head">
+        <div><p class="kicker">2 · FRAME INSPECTOR</p><h2>Navigate coarsely, inspect exactly</h2></div>
+        <span class="badge">PTS clock</span>
+      </div>
+      <div class="viewer-grid">
+        <div>
+          <h3>Coarse player</h3>
+          <video id="video" controls preload="metadata"></video>
+          <button id="jump-player" class="secondary">Inspect nearest decoded frame</button>
+        </div>
+        <div>
+          <h3>Authoritative decoded frame</h3>
+          <div class="frame-shell"><img id="frame-image" alt="Exact decoded frame"></div>
+          <div id="frame-meta" class="mono muted">Load a video.</div>
+        </div>
+      </div>
+      <div class="frame-controls">
+        <button data-step="-10" class="secondary">−10</button>
+        <button data-step="-1" class="secondary">← frame</button>
+        <input id="frame-number" type="number" min="0" value="0">
+        <button data-step="1" class="secondary">frame →</button>
+        <button data-step="10" class="secondary">+10</button>
+      </div>
+      <input id="frame-slider" class="slider" type="range" min="0" max="0" value="0">
+    </section>
+
+    <section class="two-col">
+      <article class="card">
+        <div class="section-head"><div><p class="kicker">3 · ANNOTATE</p><h2>Mark causal events</h2></div></div>
+        <div class="form-grid">
+          <label>Event<select id="event-type">
+            <option value="target-acquired">target acquired</option>
+            <option value="range-entry">range entry</option>
+            <option value="attack-animation-start">attack animation start</option>
+            <option value="projectile-launch">projectile launch / first visible</option>
+            <option value="source-death">source death</option>
+            <option value="target-death">target death</option>
+            <option value="projectile-impact">projectile impact</option>
+            <option value="retarget">retarget</option>
+            <option value="custom">custom</option>
+          </select></label>
+          <label>Label<input id="event-label" type="text" placeholder="Wizard launch"></label>
+          <label class="wide">Note<input id="event-note" type="text" placeholder="What is visually observable in this frame?"></label>
+        </div>
+        <button id="mark-frame" class="accent">Mark current frame</button>
+        <div class="table-wrap"><table><thead><tr><th>Frame</th><th>PTS</th><th>Event</th><th></th></tr></thead><tbody id="annotation-table"></tbody></table></div>
+      </article>
+
+      <article class="card">
+        <div class="section-head"><div><p class="kicker">4 · MEASURE</p><h2>Derive timing from PTS</h2></div></div>
+        <label>Mechanic/key<input id="measurement-key" type="text" value="attack.firstAttackDelayMs"></label>
+        <label>Start annotation<select id="measurement-start"></select></label>
+        <label>End annotation<select id="measurement-end"></select></label>
+        <button id="add-measurement" class="accent">Create deterministic measurement</button>
+        <div id="measurement-list" class="stack"></div>
+        <p class="hint">Duration is end PTS − start PTS. Frame rate is metadata, not the clock. Spatial projectile speed will be added only after deterministic battlefield calibration exists.</p>
+      </article>
+    </section>
+
+    <section class="card export-card">
+      <div class="section-head"><div><p class="kicker">5 · EXPORT</p><h2>Candidate evidence packet</h2></div></div>
+      <div class="toolbar">
+        <button id="refresh-packet" class="secondary">Refresh preview</button>
+        <button id="copy-packet" class="secondary">Copy JSON</button>
+        <button id="download-packet" class="accent">Download JSON</button>
+      </div>
+      <pre id="packet-preview">Load a video to begin.</pre>
+    </section>
+  </main>
+
+  <footer>Evidence Lab v0.1 · local deterministic measurement tool · no runtime AI</footer>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
