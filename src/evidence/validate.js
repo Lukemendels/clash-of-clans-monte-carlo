@@ -10,9 +10,16 @@ export function validateEvidenceRecord(record) {
   if (!nonEmpty(record.mechanic)) errors.push("mechanic is required.");
   if (!record.source || !nonEmpty(record.source.kind) || !nonEmpty(record.source.url)) errors.push("source.kind and source.url are required.");
 
-  if (["gameplay-video","youtube-video"].includes(record.source?.kind)) {
+  const isGameplayVideo=["gameplay-video","youtube-video"].includes(record.source?.kind);
+  if (isGameplayVideo) {
     if (!isYouTubeUrl(record.source.url)) errors.push("Gameplay video source must be a YouTube URL.");
     if (!nonEmpty(record.source.publishedAt)) errors.push("Gameplay video requires source.publishedAt.");
+    if (record.grade === EVIDENCE_GRADE.A_CURRENT_PATCH) {
+      if (!record.patchVerification || !nonEmpty(record.patchVerification.basis)) errors.push("Grade A gameplay video requires patchVerification.basis; publication date alone is not patch proof.");
+    }
+    if (record.grade === EVIDENCE_GRADE.B_HISTORICAL_INVARIANT && record.patchContinuityReviewed === true && !nonEmpty(record.patchContinuityNote)) {
+      errors.push("Grade B continuity review requires patchContinuityNote.");
+    }
   }
 
   if (record.measurement) {
@@ -63,11 +70,13 @@ export function canPromoteEvidence(record, mechanicKey) {
   if (requirement.requiresFrameMeasurement && !record.measurement) {
     return { promotable:false, reasons:["Current-patch frame measurement is required."] };
   }
-  if (record.grade === EVIDENCE_GRADE.A_CURRENT_PATCH && record.observedPatch !== CURRENT_PATCH_BASELINE.id) {
-    return { promotable:false, reasons:[`Grade A evidence must identify current patch ${CURRENT_PATCH_BASELINE.id}.`] };
+  if (record.grade === EVIDENCE_GRADE.A_CURRENT_PATCH) {
+    if (record.observedPatch !== CURRENT_PATCH_BASELINE.id) return { promotable:false, reasons:[`Grade A evidence must identify current patch ${CURRENT_PATCH_BASELINE.id}.`] };
+    if (!record.patchVerification || !nonEmpty(record.patchVerification.basis)) return { promotable:false, reasons:["Grade A evidence requires explicit patch-verification basis."] };
   }
-  if (record.grade === EVIDENCE_GRADE.B_HISTORICAL_INVARIANT && requirement.historicalRequiresPatchContinuityReview && record.patchContinuityReviewed !== true) {
-    return { promotable:false, reasons:["Historical invariant requires explicit patch-continuity review."] };
+  if (record.grade === EVIDENCE_GRADE.B_HISTORICAL_INVARIANT && requirement.historicalRequiresPatchContinuityReview) {
+    if (record.patchContinuityReviewed !== true) return { promotable:false, reasons:["Historical invariant requires explicit patch-continuity review."] };
+    if (!nonEmpty(record.patchContinuityNote)) return { promotable:false, reasons:["Historical invariant requires a written patch-continuity rationale."] };
   }
 
   return { promotable:true, reasons:[] };
@@ -100,7 +109,9 @@ export function makeVideoEvidenceTemplate(overrides = {}) {
       publishedAt: overrides.publishedAt || "",
     },
     observedPatch: overrides.observedPatch ?? null,
+    patchVerification: overrides.patchVerification ?? null,
     patchContinuityReviewed: overrides.patchContinuityReviewed ?? false,
+    patchContinuityNote: overrides.patchContinuityNote || "",
     clip: {
       startSeconds: overrides.startSeconds ?? null,
       endSeconds: overrides.endSeconds ?? null,
