@@ -79,14 +79,14 @@ export const OFFENSIVE_STRUCTURES=Object.freeze({
     lvl(4,2,c("elixir",5000),m(30),{unlocks:"Goblin"}),lvl(5,3,c("elixir",20000),h(2),{unlocks:"Wall Breaker"}),lvl(6,4,c("elixir",120000),h(4),{unlocks:"Balloon"}),
     lvl(7,5,c("elixir",270000),h(6),{unlocks:"Wizard"}),lvl(8,6,c("elixir",600000),h(12),{unlocks:"Healer"}),lvl(9,7,c("elixir",1000000),d(1),{unlocks:"Dragon"}),
     lvl(10,8,c("elixir",1400000),d(1)+h(12),{unlocks:"P.E.K.K.A"}),lvl(11,9,c("elixir",2600000),d(2),{unlocks:"Baby Dragon"})]},
-  laboratory:{label:"Laboratory",countAtTH9:1,targetLevelAtTH9:7,canStartResearchWhileBuildingUpgradeRuns:true,levels:[
+  laboratory:{label:"Laboratory",countAtTH9:1,targetLevelAtTH9:7,ongoingResearchContinuesDuringBuildingUpgrade:true,canStartNewResearchDuringBuildingUpgrade:false,levels:[
     lvl(1,3,c("elixir",5000),m(1)),lvl(2,4,c("elixir",25000),m(30)),lvl(3,5,c("elixir",50000),h(2)),lvl(4,6,c("elixir",100000),h(4)),
     lvl(5,7,c("elixir",200000),h(8)),lvl(6,8,c("elixir",400000),h(16)),lvl(7,9,c("elixir",800000),d(1))]},
   spell_factory:{label:"Spell Factory",countAtTH9:1,targetLevelAtTH9:4,levels:[
     lvl(1,5,c("elixir",150000),h(6),{unlocks:["Lightning Spell"],spellCapacity:2}),lvl(2,6,c("elixir",300000),h(12),{unlocks:["Healing Spell"],spellCapacity:4}),
     lvl(3,7,c("elixir",600000),d(1),{unlocks:["Rage Spell"],spellCapacity:6}),lvl(4,9,c("elixir",1200000),d(2),{unlocks:["Jump Spell","Freeze Spell"],spellCapacity:8})]},
   dark_barracks:{label:"Dark Barracks",countAtTH9:1,targetLevelAtTH9:6,levels:[
-    lvl(1,7,c("elixir",170000),h(8),{unlocks:"Minion"}),lvl(2,7,c("elixir",600000),d(1),{unlocks:"Hog Rider"}),lvl(3,8,c("elixir",1000000),d(1)+h(12),{unlocks:"Valkyrie"}),
+    lvl(1,7,c("elixir",200000),h(8),{unlocks:"Minion"}),lvl(2,7,c("elixir",600000),d(1),{unlocks:"Hog Rider"}),lvl(3,8,c("elixir",1000000),d(1)+h(12),{unlocks:"Valkyrie"}),
     lvl(4,8,c("elixir",1600000),d(2),{unlocks:"Golem"}),lvl(5,9,c("elixir",2200000),d(2)+h(12),{unlocks:"Witch"}),lvl(6,9,c("elixir",2900000),d(3),{unlocks:"Lava Hound"})]},
   dark_spell_factory:{label:"Dark Spell Factory",countAtTH9:1,targetLevelAtTH9:4,levels:[
     lvl(1,8,c("elixir",130000),h(6),{unlocks:"Poison Spell"}),lvl(2,8,c("elixir",260000),h(12),{unlocks:"Earthquake Spell"}),lvl(3,9,c("elixir",600000),d(2),{unlocks:"Haste Spell"}),lvl(4,9,c("elixir",1200000),d(3),{unlocks:"Skeleton Spell"})]},
