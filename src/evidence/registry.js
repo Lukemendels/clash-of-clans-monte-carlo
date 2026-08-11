@@ -66,6 +66,30 @@ export const MECHANICS_EVIDENCE = Object.freeze([
     },
   },
   {
+    id: "cannon-l8-static-2026-08-10",
+    status: EVIDENCE_STATUS.ACCEPTED,
+    grade: EVIDENCE_GRADE.STATIC_REFERENCE,
+    claimType: "static-parameter",
+    mechanic: "building.cannon.level8.nominalStats",
+    source: {
+      kind: "reference-table",
+      publisher: "Clash of Clans Wiki",
+      url: "https://clashofclans.fandom.com/wiki/Cannon/Home_Village",
+      checkedAt: "2026-08-10",
+    },
+    observation: {
+      values: {
+        hitpoints: 800,
+        damagePerAttack: 38.4,
+        damagePerSecond: 48,
+        attackIntervalMs: 800,
+        rangeTiles: 9,
+        targets: ["ground"],
+        damageType: "single-target",
+      },
+    },
+  },
+  {
     id: "builder-hut-l1-static-2026-08-10",
     status: EVIDENCE_STATUS.ACCEPTED,
     grade: EVIDENCE_GRADE.STATIC_REFERENCE,
