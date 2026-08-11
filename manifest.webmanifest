@@ -1,7 +1,7 @@
 {
-  "name": "Basecracker — TH7 Deterministic Combat Lab",
-  "short_name": "Basecracker",
-  "description": "Local-first TH7 base builder, deterministic combat kernel, and Monte Carlo research workbench.",
+  "name": "Clash Upgrade Planner — Personal TH9 Rush",
+  "short_name": "Clash Planner",
+  "description": "Local-first personal Clash of Clans upgrade scheduler for a strategic rush to max offense at TH9.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
