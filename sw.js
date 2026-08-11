@@ -1,8 +1,9 @@
-const CACHE="basecracker-v0.3.0-deterministic-kernel";
+const CACHE="basecracker-v0.3.1-mechanics-evidence";
 const ASSETS=[
   "./","./index.html","./styles.css","./builder.css","./manifest.webmanifest","./icon.svg",
   "./src/app.js","./src/model.js","./src/legality.js","./src/projection.js",
   "./src/rulesets/th7.js","./src/rulesets/th7-combat.js","./src/combat/kernel.js",
+  "./src/evidence/registry.js","./src/evidence/validate.js",
   "./src/sim.js","./src/optimizer.js","./src/worker.js"
 ];
 
