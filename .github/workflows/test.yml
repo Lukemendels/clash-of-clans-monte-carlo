@@ -32,6 +32,10 @@ jobs:
           node --check src/progression/research-th9.js
           node --check src/progression/target-th9.js
           node --check src/strategy/luke-th9-rush.js
+          node --check src/import/village-data-ids.js
+          node --check src/import/village-export.js
+          node --check src/planner-store.js
+          node --check src/planner-app.js
           node --check evidence-lab/static/core.js
           node --check evidence-lab/static/app.js
       - name: Check Evidence Lab server
