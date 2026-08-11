@@ -26,5 +26,9 @@ jobs:
           node --check src/combat/kernel.js
           node --check src/evidence/registry.js
           node --check src/evidence/validate.js
+          node --check evidence-lab/static/core.js
+          node --check evidence-lab/static/app.js
+      - name: Syntax check Evidence Lab server
+        run: python -m py_compile evidence-lab/server.py
       - name: Run deterministic tests
         run: npm test
